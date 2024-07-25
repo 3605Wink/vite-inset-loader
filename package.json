@@ -1,0 +1,56 @@
+{
+  "name": "vite-inset-loader",
+  "version": "1.0.0",
+  "description": "在Vite构建的Vue应用中，编译阶段在SFC模板指定位置插入自定义内容，适用于需要在每个页面引入组件的小程序场景。",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    },
+    "./*": "./*"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm run build --watch --ignore-watch examples",
+    "build": "tsup",
+    "example:ycgyxny": "cd examples/GyUi && pnpm weixin",
+    "prepublishOnly": "pnpm run build",
+    "release": "npx bumpp --push --tag --commit && pnpm publish"
+  },
+  "keywords": [
+    "vite",
+    "loader",
+    "vue",
+    "uni-app",
+    "component-injection"
+  ],
+  "author": "Jeddy",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^17.0.45",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "bumpp": "^7.2.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "tsup": "^6.7.0",
+    "typescript": "^4.9.5",
+    "vite": "^5.3.4"
+  },
+  "dependencies": {
+    "@vue/compiler-sfc": "^3.4.33",
+    "chokidar": "^3.6.0",
+    "debug": "^4.3.5",
+    "strip-json-comments": "^5.0.1",
+    "vue-loader": "^17.4.2"
+  }
+}

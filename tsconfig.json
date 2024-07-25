@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "module": "es2022",
+    "moduleResolution": "node",
+    "strict": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "lib": ["ESNext"],
+    "sourceMap": false,
+    "noEmitOnError": true,
+    "noImplicitAny": false,
+    "types": ["strip-json-comments"]
+  },
+  "include": ["src/*", "*.d.ts"],
+  "exclude": ["node_modules", "examples", "dist"]
+}
