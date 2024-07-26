@@ -68,7 +68,7 @@ export const createApp = () => {
 ## 致谢
 - `vite-inset-loader` 灵感来源于 `vue-inset-loader` 插件，但是`vue-inset-loader`仅适用于uniapp vue2、webpack版本，无法在vite版本中使用，所以参照`vue-inset-loader`github仓库源码对其优化，进行了vite插件的适配，以支持 Vite + Vue 3。
 
-特别感谢 **[vue-inset-loader](https://github.com/1977474741/vite-inset-loader)** 为本的插件提供了的优化支持。
+特别感谢 **[vue-inset-loader](https://github.com/1977474741/vite-inset-loader)** 为本插件提供了的优化支持。
 
 
 
