@@ -17,9 +17,6 @@
     "type": "git",
     "url": "https://github.com/3605Wink/vite-inset-loader.git"
   },
-  "bugs": {
-    "url": "https://github.com/wsvaio/pinia-plugin-persist/issues"
-  },
   "files": [
     "dist"
   ],
