@@ -10,10 +10,23 @@ declare const viteInsetLoader: () => PluginOption;
 interface InsetLoaderConfig {
     label?: string[];
     config?: Record<string, any>;
+    package?: ViteInsetLoaderOptions;
 }
 interface LabelConfig {
     [key: string]: {
         label?: string[];
+        package?: ViteInsetLoaderOptions;
+    };
+}
+interface ViteInsetLoaderOptions {
+    label: string;
+    options: {
+        class?: string;
+        id?: string;
+        style: {
+            [key: string]: string;
+        };
+        [key: string]: any;
     };
 }
 
@@ -22,9 +35,9 @@ declare const initPages: (that: any) => boolean;
 declare const getPagesMap: () => {
     [key: string]: LabelConfig;
 };
-declare const generateHtmlCode: (template: string, labelCode: string) => string;
+declare const generateHtmlCode: (template: string, labelCode: string, packageEle: ViteInsetLoaderOptions | null) => string;
 declare const generateStyleCode: (styles: any[]) => any;
 declare const generateScriptCode: (script: SFCScriptBlock) => string;
 declare const getRoute: (resourcePath: string) => string | null;
 
-export { InsetLoaderConfig, LabelConfig, generateHtmlCode, generateLabelCode, generateScriptCode, generateStyleCode, getPagesMap, getRoute, initPages, viteInsetLoader };
+export { InsetLoaderConfig, LabelConfig, ViteInsetLoaderOptions, viteInsetLoader as default, generateHtmlCode, generateLabelCode, generateScriptCode, generateStyleCode, getPagesMap, getRoute, initPages };

@@ -3,7 +3,11 @@
 import fs from 'fs';
 import stripJsonComments from './module/strip-json-comments';
 import path from 'path';
-import { InsetLoaderConfig, LabelConfig } from './types';
+import {
+  InsetLoaderConfig,
+  LabelConfig,
+  ViteInsetLoaderOptions,
+} from './types';
 import { SFCScriptBlock } from '@vue/compiler-sfc';
 // 反序列化后的pages.json对象
 let pagesJson: any = {};
@@ -39,6 +43,7 @@ const getPagesMap = (): { [key: string]: LabelConfig } => {
   return pages.reduce(
     (obj: { [key: string]: LabelConfig }, item: { path: string }) => {
       const curPage = getLabelConfig(item);
+
       curPage.label && (obj['/' + item.path] = curPage);
       return obj;
     },
@@ -64,6 +69,7 @@ const getPagesMap = (): { [key: string]: LabelConfig } => {
 const getLabelConfig = (json: { path?: string; style?: any }) => {
   return {
     label: (json.style && json.style.label) || insetLoader.label,
+    package: (json.style && json.style.package) || insetLoader.package || null,
   };
 };
 
@@ -79,18 +85,46 @@ const initInsetLoader = (): boolean => {
   return effective;
 };
 
-const generateHtmlCode = (template: string, labelCode: string): string => {
+const generateHtmlCode = (
+  template: string,
+  labelCode: string,
+  packageEle: ViteInsetLoaderOptions | null, // 允许 packageEle 为 null
+): string => {
+  const renderHtml = (): string => {
+    // 创建一个正则表达式，用于移除 HTML 注释和首尾空白
+    const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
+    // 清理模板，移除注释和空白
+    return `${labelCode}\n${template.replace(regClean, '').trim()}\n`;
+  };
+
   // 确保模板内容存在
-  if (!template) {
-    return '';
-  }
-  // 创建一个正则表达式，用于移除HTML注释和首尾空白
-  const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
-  // 清理模板，移除注释和空白
-  let cleanTemplate = template.replace(regClean, '');
-  // 将 labelCode 包装在 <div> 标签内，并确保与原有内容间有适当的空白
-  cleanTemplate = `<div>\n${labelCode}\n${cleanTemplate}\n</div>`;
-  return cleanTemplate;
+  if (!template) return '';
+
+  if (!packageEle) return renderHtml();
+
+  const { label = 'div', options } = packageEle;
+
+  const {
+    class: className = '',
+    id = '',
+    style = {},
+    ...otherOptions
+  } = options;
+
+  // 构建样式属性
+  const styleAttr =
+    Object.keys(style).length > 0
+      ? `style="${Object.entries(style)
+          .map(([key, value]) => `${key}:${value}`)
+          .join(';')}"`
+      : '';
+
+  // 构建其他属性
+  const otherAttr = Object.entries(otherOptions)
+    .map(([key, value]) => `${key}="${value}"`)
+    .join(' ');
+
+  return `<${label} class="${className}" id="${id}" ${styleAttr} ${otherAttr}>${renderHtml()}</${label}>`;
 };
 
 // 根据compiler组合成style标签字符串代码

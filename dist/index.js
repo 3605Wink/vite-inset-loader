@@ -135,7 +135,8 @@ var getPagesMap = () => {
 };
 var getLabelConfig = (json) => {
   return {
-    label: json.style && json.style.label || insetLoader.label
+    label: json.style && json.style.label || insetLoader.label,
+    package: json.style && json.style.package || insetLoader.package || null
   };
 };
 var initInsetLoader = () => {
@@ -144,17 +145,27 @@ var initInsetLoader = () => {
   const effective = typeof insetLoader.config === "object" && Object.keys(insetLoader.config).length > 0;
   return effective;
 };
-var generateHtmlCode = (template, labelCode) => {
-  if (!template) {
+var generateHtmlCode = (template, labelCode, packageEle) => {
+  const renderHtml = () => {
+    const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
+    return `${labelCode}
+${template.replace(regClean, "").trim()}
+`;
+  };
+  if (!template)
     return "";
-  }
-  const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
-  let cleanTemplate = template.replace(regClean, "");
-  cleanTemplate = `<div>
-${labelCode}
-${cleanTemplate}
-</div>`;
-  return cleanTemplate;
+  if (!packageEle)
+    return renderHtml();
+  const { label = "div", options } = packageEle;
+  const {
+    class: className = "",
+    id = "",
+    style = {},
+    ...otherOptions
+  } = options;
+  const styleAttr = Object.keys(style).length > 0 ? `style="${Object.entries(style).map(([key, value]) => `${key}:${value}`).join(";")}"` : "";
+  const otherAttr = Object.entries(otherOptions).map(([key, value]) => `${key}="${value}"`).join(" ");
+  return `<${label} class="${className}" id="${id}" ${styleAttr} ${otherAttr}>${renderHtml()}</${label}>`;
 };
 var generateStyleCode = (styles) => styles.reduce((str, item, _i) => {
   return str += `<style ${item.lang ? "lang='" + item.lang + "'" : ""} ${item.scoped ? "scoped='" + item.scoped + "'" : ""}>
@@ -208,7 +219,8 @@ var viteInsetLoader = () => ({
     const labelCode = generateLabelCode(curPage.label);
     const template = generateHtmlCode(
       ((_a = descriptor.template) == null ? void 0 : _a.content) || "",
-      labelCode
+      labelCode,
+      curPage.package
     );
     const style = generateStyleCode((descriptor == null ? void 0 : descriptor.styles) || []);
     const scriptSetup = (descriptor == null ? void 0 : descriptor.scriptSetup) == null ? null : generateScriptCode(descriptor == null ? void 0 : descriptor.scriptSetup);
@@ -223,13 +235,16 @@ ${style || ""}
     `;
   }
 });
+
+// src/index.ts
+var src_default = viteInsetLoader;
 export {
+  src_default as default,
   generateHtmlCode,
   generateLabelCode,
   generateScriptCode,
   generateStyleCode,
   getPagesMap,
   getRoute,
-  initPages,
-  viteInsetLoader
+  initPages
 };

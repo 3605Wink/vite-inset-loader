@@ -23,6 +23,7 @@ let shouldHandle = false;
 const initializePages = (that: any) => {
   // 调用 initPages 函数，判断是否需要处理页面配置
   shouldHandle = initPages(that);
+
   if (shouldHandle) {
     // 如果需要处理，获取页面配置映射
     pagesMap = getPagesMap();
@@ -61,6 +62,7 @@ export const viteInsetLoader = (): PluginOption => ({
     const template = generateHtmlCode(
       descriptor.template?.content || '',
       labelCode,
+      curPage.package!,
     );
 
     const style = generateStyleCode(descriptor?.styles || []);
