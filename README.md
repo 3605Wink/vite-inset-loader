@@ -23,33 +23,36 @@ yarn install vite-inset-loader
 ```
 
 ## 配置项
+
 ### insetLoader 全局配置
+
 | 属性    | 说明                         | 默认值 | 是否必传 |
 | ------- | ---------------------------- | ------ | -------- |
 | config  | 组件别名与实际组件的映射配置 |        | 否       |
-| label   | 与config中别名对应           |        | 否       |
+| label   | 与 config 中别名对应         |        | 否       |
 | package | 外层包裹组件                 |        | 否       |
 
+### config 配置
 
-### config配置 
-``` json
+```json
  "config": {
       //key值(别名)对应insetLoader中label值
-      "privacyModal": "<privacyModal></privacyModal>", // 隐私模态框组件
       "message": "<GyMessage ref='messageRef'></GyMessage>", // 消息提示组件
       "dialog": "<GyDialog ref='dialogRef'></GyDialog>" // 对话框组件
   },
 
 ```
-### label配置
 
-``` json
+### label 配置
+
+```json
   "label": ["message", "privacyModal", "dialog"], //对应config中组件别名
 
 ```
-### package配置
 
-``` json
+### package 配置
+
+```json
  "package": {
       "label": "span", // html标签：非必填，若漏传label属性，则默认为div
       "options": {
@@ -80,80 +83,6 @@ export default defineConfig(() => {
 });
 ```
 
-
-## 具体配置示例
-
-###  全局配置
-
-```json
-{
-  // 全局组件配置说明
-  // 注意：以下配置中，页面特定组件的优先级高于全局配置。
-  "insetLoader": {
-    // 组件别名与实际组件的映射配置
-    "config": {
-      "privacyModal": "<privacyModal></privacyModal>", // 隐私模态框组件
-      "message": "<GyMessage ref='messageRef'></GyMessage>", // 消息提示组件
-      "dialog": "<GyDialog ref='dialogRef'></GyDialog>" // 对话框组件
-    },
-    // 以下标签为全局组件，将被注入到所有页面中。
-    // 注意：若在页面级别配置中存在相同标签，则优先使用页面配置的组件。
-    "label": ["message", "privacyModal", "dialog"],
-    // 全局包裹组件配置，可包含样式属性如class、id、style等，也支持自定义属性如data-attr、img、href、src等。
-    // 注意：class和id应为全局定义的样式。
-    // 全局包裹组件的优先级低于页面级配置。
-    "package": {
-      "label": "span", // 标签名称 若该
-      "options": {
-        // 标签属性配置，支持样式属性及自定义属性
-        // 注意：class和id需要是全局样式表中定义的
-        "class": "dev-style", // 全局样式类
-        "style": {
-          "font-size": "24px" // 内联样式
-        },
-        "data-attr": "content" // 自定义数据属性
-      }
-    }
-  }
-}
-
-```
-### 页面单独配置 (优先级均高于全局配置)
-
-``` json
-"pages": [
-		{
-			"path": "pages/home/index",
-			"style": {
-				"navigationBarTitleText": "首页",
-				// 优先级高于insetLoader
-				"label": ["message"],
-				// 外层包裹组件，可为空，优先级高于insetLoader中配置
-				"package": {
-					"label": "span",
-					"options": {
-						// options中支持class、id、style等样式属性，也可传入其他属性，类似data-attr、img、href、src等
-						// 注：class、id需为全局样式
-						"class": "dev-style",
-						"style": {
-							"font-size": "24px"
-						},
-						"data-attr": "123468"
-					}
-				}
-			}
-		},
-		{
-			"path": "pages/user/index",
-			"style": {
-				"navigationBarTitleText": "我的",
-			}
-		}
-	]
-
-
-```
-
 ## 注册全局组件
 
 配置完`pages.json`后，在 `main.ts` 或 `main.js` 文件中，使用 `createSSRApp` 创建应用实例来注册全局组件。
@@ -170,6 +99,75 @@ export const createApp = () => {
 };
 ```
 
+## 具体配置示例
+
+### 全局配置
+
+```json
+{
+  // 全局组件配置说明
+  "insetLoader": {
+    // config仅可在insetLoader中配置，不可在pages中配置
+    "config": {
+      "message": "<GyMessage ref='messageRef'></GyMessage>",
+      "dialog": "<GyDialog ref='dialogRef'></GyDialog>"
+    },
+    "label": ["message", "dialog"],
+    "package": {
+      "label": "span",
+      "options": {
+        "class": "dev-style",
+        "style": {
+          "font-size": "24px"
+        },
+        "data-attr": "content"
+      }
+    }
+  }
+}
+```
+
+### 页面单独配置 (优先级均高于全局配置)
+
+```json
+{
+    "pages": [
+        {
+          "path": "pages/home/index",
+            "style": {
+                "navigationBarTitleText": "首页",
+                "label": ["message"],
+                "package": {
+                    "label": "span",
+                    "options": {
+                        "class": "dev-style",
+                        "style": {
+                            "font-size": "24px"
+                        },
+                        "data-attr": "123468"
+                    }
+                }
+            }  
+        }
+    ]
+}
+```
+
+#### 注意事项
+- 全局组件的定义必须在 `insetLoader` 属性的 `config` 配置中进行，页面配置中不可配置。
+- 全局配置 `insetLoader` 的配置优先级均低于页面中 `page` 配置，页面配置可覆盖 `insetLoader` 配置。
+- `label` 属性为数组，数组中的元素为 `config` 配置的组件别名。
+- `package` 属性为对象，支持标签属性配置，支持样式属性及自定义属性，若漏传 `label` 属性，则默认为 `div` 标签。
+- 若 `package` 不传，那么该页面将不会被标签包裹，例如：
+    ```html
+    <template>
+        <!-- config 中配置的全局组件 -->
+        <GyMessage ref="messageRef"></GyMessage> 
+        <!-- 主内容 -->
+        <div>----</div> 
+    </template>
+    ```
+- 例如 `config` 中引入组件 `GyMessage`，那么在 `main.ts` 或 `main.js` 中使用 `component` 进行全局组件的注册。
 
 ### 通过以上步骤，您可以在 Vue 3 + Vite 项目中使用 vite-inset-loader 插件，以支持小程序等场景中的全局组件引入。
 
