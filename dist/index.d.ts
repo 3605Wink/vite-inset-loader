@@ -1,12 +1,6 @@
 import { PluginOption } from 'vite';
 import { SFCScriptBlock } from '@vue/compiler-sfc';
 
-/**
- * Vite 插件入口函数，返回插件配置对象。
- * @returns 插件配置对象。
- */
-declare const viteInsetLoader: () => PluginOption;
-
 interface InsetLoaderConfig {
     label?: string[];
     config?: Record<string, any>;
@@ -29,6 +23,15 @@ interface ViteInsetLoaderOptions {
         [key: string]: any;
     };
 }
+interface OPTIONS {
+    include?: string | string[];
+}
+
+/**
+ * Vite 插件入口函数，返回插件配置对象。
+ * @returns 插件配置对象。
+ */
+declare const viteInsetLoader: (options?: OPTIONS) => PluginOption;
 
 declare const generateLabelCode: (labelArr: string[]) => string;
 declare const initPages: (that: any) => boolean;
@@ -39,5 +42,6 @@ declare const generateHtmlCode: (template: string, labelCode: string, packageEle
 declare const generateStyleCode: (styles: any[]) => any;
 declare const generateScriptCode: (script: SFCScriptBlock) => string;
 declare const getRoute: (resourcePath: string) => string | null;
+declare const filterDirectoriesByInclude: (options: OPTIONS) => string[];
 
-export { InsetLoaderConfig, LabelConfig, ViteInsetLoaderOptions, viteInsetLoader as default, generateHtmlCode, generateLabelCode, generateScriptCode, generateStyleCode, getPagesMap, getRoute, initPages };
+export { InsetLoaderConfig, LabelConfig, OPTIONS, ViteInsetLoaderOptions, viteInsetLoader as default, filterDirectoriesByInclude, generateHtmlCode, generateLabelCode, generateScriptCode, generateStyleCode, getPagesMap, getRoute, initPages };

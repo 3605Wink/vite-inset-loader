@@ -23,3 +23,7 @@ export interface ViteInsetLoaderOptions {
     [key: string]: any;
   };
 }
+
+export interface OPTIONS {
+  include?: string | string[];
+}

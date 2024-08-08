@@ -21,8 +21,26 @@ npm install vite-inset-loader
 ```bash
 yarn install vite-inset-loader
 ```
+## viteInsetLoader方法 配置项
+| 属性    | 说明                                                                               | 类型               | 默认值 | 是否必传 |
+| ------- | ---------------------------------------------------------------------------------- | ------------------ | ------ | -------- |
+| include | 过滤需要`inset`组件的目录,若需添加该配置，务必将路径填写正确，若错误则不会执行插入 | string 或 string[] | src    | 否       |
+### 示例
 
-## 配置项
+``` javascript
+import { defineConfig } from 'vite';
+import uni from '@dcloudio/vite-plugin-uni';
+import viteInsetLoader from 'vite-inset-loader';
+
+export default defineConfig(() => {
+  return {
+    plugins: [viteInsetLoader({includes:['src/pages']}), uni()],
+  };
+});
+
+```
+
+## pages.json 配置项
 
 ### insetLoader 全局配置
 

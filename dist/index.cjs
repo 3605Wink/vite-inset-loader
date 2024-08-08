@@ -31,6 +31,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var src_exports = {};
 __export(src_exports, {
   default: () => src_default,
+  filterDirectoriesByInclude: () => filterDirectoriesByInclude,
   generateHtmlCode: () => generateHtmlCode,
   generateLabelCode: () => generateLabelCode,
   generateScriptCode: () => generateScriptCode,
@@ -230,6 +231,17 @@ var getRoute = (resourcePath) => {
   }
   return relativePath;
 };
+var filterDirectoriesByInclude = (options) => {
+  const { include } = options;
+  if (Array.isArray(include)) {
+    const arrUrl = include == null ? void 0 : include.map(
+      (url) => import_path.default.resolve(process.cwd(), url).replace(/\\/g, "/")
+    );
+    return arrUrl;
+  } else {
+    return [import_path.default.resolve(process.cwd(), include || "").replace(/\\/g, "/")];
+  }
+};
 
 // src/plugin.ts
 var pagesMap = {};
@@ -241,17 +253,20 @@ var initializePages = (that) => {
     pagesMap = getPagesMap();
   }
 };
-var viteInsetLoader = () => ({
+var viteInsetLoader = (options) => ({
   name: "vite-inset-loader",
   // 插件名称
   transform: (content, id) => {
     var _a;
+    const allDirectories = filterDirectoriesByInclude(
+      options || { include: "src" }
+    );
+    if (!allDirectories.some((path2) => id.includes(path2)))
+      return;
     if (!initialized) {
       initialized = true;
       initializePages(void 0);
     }
-    if (!id.includes("src"))
-      return content;
     const route = getRoute(id);
     if (route == null)
       return content;
@@ -283,6 +298,7 @@ ${style || ""}
 var src_default = viteInsetLoader;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  filterDirectoriesByInclude,
   generateHtmlCode,
   generateLabelCode,
   generateScriptCode,

@@ -187,6 +187,17 @@ var getRoute = (resourcePath) => {
   }
   return relativePath;
 };
+var filterDirectoriesByInclude = (options) => {
+  const { include } = options;
+  if (Array.isArray(include)) {
+    const arrUrl = include == null ? void 0 : include.map(
+      (url) => path.resolve(process.cwd(), url).replace(/\\/g, "/")
+    );
+    return arrUrl;
+  } else {
+    return [path.resolve(process.cwd(), include || "").replace(/\\/g, "/")];
+  }
+};
 
 // src/plugin.ts
 var pagesMap = {};
@@ -198,17 +209,20 @@ var initializePages = (that) => {
     pagesMap = getPagesMap();
   }
 };
-var viteInsetLoader = () => ({
+var viteInsetLoader = (options) => ({
   name: "vite-inset-loader",
   // 插件名称
   transform: (content, id) => {
     var _a;
+    const allDirectories = filterDirectoriesByInclude(
+      options || { include: "src" }
+    );
+    if (!allDirectories.some((path2) => id.includes(path2)))
+      return;
     if (!initialized) {
       initialized = true;
       initializePages(void 0);
     }
-    if (!id.includes("src"))
-      return content;
     const route = getRoute(id);
     if (route == null)
       return content;
@@ -240,6 +254,7 @@ ${style || ""}
 var src_default = viteInsetLoader;
 export {
   src_default as default,
+  filterDirectoriesByInclude,
   generateHtmlCode,
   generateLabelCode,
   generateScriptCode,

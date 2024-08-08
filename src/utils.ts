@@ -7,6 +7,7 @@ import {
   InsetLoaderConfig,
   LabelConfig,
   ViteInsetLoaderOptions,
+  OPTIONS,
 } from './types';
 import { SFCScriptBlock } from '@vue/compiler-sfc';
 // 反序列化后的pages.json对象
@@ -158,6 +159,19 @@ const getRoute = (resourcePath: string): string | null => {
   return relativePath;
 };
 
+// 根据include进行过滤执行
+const filterDirectoriesByInclude = (options: OPTIONS): string[] => {
+  const { include } = options;
+  if (Array.isArray(include)) {
+    const arrUrl = include?.map((url: string) =>
+      path.resolve(process.cwd(), url).replace(/\\/g, '/'),
+    );
+    return arrUrl;
+  } else {
+    return [path.resolve(process.cwd(), include || '').replace(/\\/g, '/')];
+  }
+};
+
 export {
   initPages,
   getPagesMap,
@@ -166,4 +180,5 @@ export {
   generateHtmlCode,
   generateStyleCode,
   generateScriptCode,
+  filterDirectoriesByInclude,
 };

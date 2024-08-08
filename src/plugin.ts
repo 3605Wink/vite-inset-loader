@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { PluginOption } from 'vite';
 import { parse } from '@vue/compiler-sfc';
-import { LabelConfig } from './types';
+import { LabelConfig, OPTIONS } from './types';
 import {
   initPages,
   getPagesMap,
@@ -11,6 +11,7 @@ import {
   generateHtmlCode,
   generateStyleCode,
   generateScriptCode,
+  filterDirectoriesByInclude,
 } from './utils';
 
 let pagesMap: LabelConfig = {};
@@ -34,26 +35,29 @@ const initializePages = (that: any) => {
  * Vite 插件入口函数，返回插件配置对象。
  * @returns 插件配置对象。
  */
-export const viteInsetLoader = (): PluginOption => ({
+export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
   name: 'vite-inset-loader', // 插件名称
   transform: (content, id) => {
+    // 筛选符合包含条件的目录
+    const allDirectories = filterDirectoriesByInclude(
+      options || { include: 'src' },
+    );
+    if (!allDirectories.some((path) => id.includes(path))) return;
+
     // 转换器函数，处理文件内容
     if (!initialized) {
       initialized = true;
       initializePages(this); // 初始化页面配置
     }
 
-    // 如果文件不是从 src/ 开始，不处理
-    if (!id.includes('src')) return content;
-
     // 获取文件对应的路由路径
     const route = getRoute(id);
-
     if (route == null) return content;
     // 获取当前页面的配置
     const curPage = pagesMap[route];
     // 如果当前页面没有配置，不处理
     if (curPage == undefined) return content;
+
     // 解析 Vue 单文件组件内容
     const { descriptor } = parse(content);
 
