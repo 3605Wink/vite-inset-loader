@@ -178,8 +178,6 @@ var generateScriptCode = (script) => {
 </script>`;
 };
 var getRoute = (resourcePath) => {
-  if (!resourcePath.includes("src"))
-    return null;
   const pwd = rootPath.replace(/\\/g, "/");
   const relativePath = resourcePath.replace(pwd, "").replace(/\\/g, "/");
   if (relativePath.endsWith(".vue")) {
@@ -187,15 +185,15 @@ var getRoute = (resourcePath) => {
   }
   return relativePath;
 };
-var filterDirectoriesByInclude = (options) => {
+var filterDirectoriesByInclude = (rootDir2, options) => {
   const { include } = options;
   if (Array.isArray(include)) {
     const arrUrl = include == null ? void 0 : include.map(
-      (url) => path.resolve(process.cwd(), url).replace(/\\/g, "/")
+      (url) => path.resolve(rootDir2, url).replace(/\\/g, "/")
     );
     return arrUrl;
   } else {
-    return [path.resolve(process.cwd(), include || "").replace(/\\/g, "/")];
+    return [path.resolve(rootDir2, include || "src").replace(/\\/g, "/")];
   }
 };
 
@@ -203,6 +201,7 @@ var filterDirectoriesByInclude = (options) => {
 var pagesMap = {};
 var initialized = false;
 var shouldHandle = false;
+var rootDir;
 var initializePages = (that) => {
   shouldHandle = initPages(that);
   if (shouldHandle) {
@@ -212,9 +211,13 @@ var initializePages = (that) => {
 var viteInsetLoader = (options) => ({
   name: "vite-inset-loader",
   // 插件名称
+  configResolved(config) {
+    rootDir = config.root;
+  },
   transform: (content, id) => {
     var _a;
     const allDirectories = filterDirectoriesByInclude(
+      rootDir,
       options || { include: "src" }
     );
     if (!allDirectories.some((path2) => id.includes(path2)))

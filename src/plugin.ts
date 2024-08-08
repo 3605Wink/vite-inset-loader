@@ -17,6 +17,8 @@ import {
 let pagesMap: LabelConfig = {};
 let initialized = false;
 let shouldHandle = false;
+// 当前项目根目录路径
+let rootDir: string;
 /**
  * 初始化页面配置。
  * @param that - 上下文对象，通常是从 Vite 插件传递的。
@@ -37,11 +39,16 @@ const initializePages = (that: any) => {
  */
 export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
   name: 'vite-inset-loader', // 插件名称
+  configResolved(config) {
+    rootDir = config.root;
+  },
   transform: (content, id) => {
     // 筛选符合包含条件的目录
     const allDirectories = filterDirectoriesByInclude(
+      rootDir,
       options || { include: 'src' },
     );
+
     if (!allDirectories.some((path) => id.includes(path))) return;
 
     // 转换器函数，处理文件内容

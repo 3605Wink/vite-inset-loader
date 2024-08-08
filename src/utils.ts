@@ -149,7 +149,6 @@ const generateScriptCode = (script: SFCScriptBlock) => {
 
 // 根据resourcePath获取路由
 const getRoute = (resourcePath: string): string | null => {
-  if (!resourcePath.includes('src')) return null;
   const pwd = rootPath.replace(/\\/g, '/');
   const relativePath = resourcePath.replace(pwd, '').replace(/\\/g, '/');
   // 确保在替换 '.vue' 之前，路径字符串中确实包含 '.vue'
@@ -160,15 +159,18 @@ const getRoute = (resourcePath: string): string | null => {
 };
 
 // 根据include进行过滤执行
-const filterDirectoriesByInclude = (options: OPTIONS): string[] => {
+const filterDirectoriesByInclude = (
+  rootDir: string,
+  options: OPTIONS,
+): string[] => {
   const { include } = options;
   if (Array.isArray(include)) {
     const arrUrl = include?.map((url: string) =>
-      path.resolve(process.cwd(), url).replace(/\\/g, '/'),
+      path.resolve(rootDir, url).replace(/\\/g, '/'),
     );
     return arrUrl;
   } else {
-    return [path.resolve(process.cwd(), include || '').replace(/\\/g, '/')];
+    return [path.resolve(rootDir, include || 'src').replace(/\\/g, '/')];
   }
 };
 

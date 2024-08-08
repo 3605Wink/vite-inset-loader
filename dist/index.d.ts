@@ -42,6 +42,6 @@ declare const generateHtmlCode: (template: string, labelCode: string, packageEle
 declare const generateStyleCode: (styles: any[]) => any;
 declare const generateScriptCode: (script: SFCScriptBlock) => string;
 declare const getRoute: (resourcePath: string) => string | null;
-declare const filterDirectoriesByInclude: (options: OPTIONS) => string[];
+declare const filterDirectoriesByInclude: (rootDir: string, options: OPTIONS) => string[];
 
 export { InsetLoaderConfig, LabelConfig, OPTIONS, ViteInsetLoaderOptions, viteInsetLoader as default, filterDirectoriesByInclude, generateHtmlCode, generateLabelCode, generateScriptCode, generateStyleCode, getPagesMap, getRoute, initPages };

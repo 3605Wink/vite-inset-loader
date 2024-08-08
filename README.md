@@ -34,7 +34,7 @@ import viteInsetLoader from 'vite-inset-loader';
 
 export default defineConfig(() => {
   return {
-    plugins: [viteInsetLoader({includes:['src/pages']}), uni()],
+    plugins: [viteInsetLoader({include:['src/pages']}), uni()],
   };
 });
 
