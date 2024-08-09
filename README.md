@@ -2,6 +2,9 @@
 
 vite-inset-loader 是一个专为 UNIAPP 设计的 Vite 插件，旨在为 Vue 3 + Vite 构建的项目提供支持。它允许在编译阶段，在 Vue 单文件组件 (SFC) 的模板中指定位置插入自定义组件和内容。特别适用于需要在每个页面中全局引入组件的场景，例如在小程序开发中插入全局的 message 组件。
 
+## demo
+**[demo仓库](https://github.com/3605Wink/uniapp-gy-template)**
+
 ## 安装
 
 要在您的项目中安装 vite-inset-loader 插件，可以使用以下命令：
