@@ -12,6 +12,7 @@ import {
   generateStyleCode,
   generateScriptCode,
   filterDirectoriesByInclude,
+  getTemplatePageMeta,
 } from './utils';
 
 let pagesMap: LabelConfig = {};
@@ -44,10 +45,7 @@ export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
   },
   transform: (content, id) => {
     // 筛选符合包含条件的目录
-    const allDirectories = filterDirectoriesByInclude(
-      rootDir,
-      options || { include: 'src' },
-    );
+    const allDirectories = filterDirectoriesByInclude(rootDir, options || { include: 'src' });
 
     if (!allDirectories.some((path) => id.includes(path))) return;
 
@@ -70,24 +68,14 @@ export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
 
     // 生成代码片段
     const labelCode = generateLabelCode(curPage.label!);
-    const template = generateHtmlCode(
-      descriptor.template?.content || '',
-      labelCode,
-      curPage.package!,
-    );
-
+    const template = generateHtmlCode(descriptor.template?.content || '', labelCode, curPage.package!);
     const style = generateStyleCode(descriptor?.styles || []);
-    const scriptSetup =
-      descriptor?.scriptSetup == null
-        ? null
-        : generateScriptCode(descriptor?.scriptSetup);
-    const script =
-      descriptor?.script == null
-        ? null
-        : generateScriptCode(descriptor?.script);
+    const scriptSetup = descriptor?.scriptSetup == null ? null : generateScriptCode(descriptor?.scriptSetup);
+    const script = descriptor?.script == null ? null : generateScriptCode(descriptor?.script);
     // 返回处理后的内容
     return `
 <template>
+${getTemplatePageMeta(template)}
 ${template}
 </template>
 ${scriptSetup || ''}

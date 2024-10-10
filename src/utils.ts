@@ -3,12 +3,7 @@
 import fs from 'fs';
 import stripJsonComments from './module/strip-json-comments';
 import path from 'path';
-import {
-  InsetLoaderConfig,
-  LabelConfig,
-  ViteInsetLoaderOptions,
-  OPTIONS,
-} from './types';
+import { InsetLoaderConfig, LabelConfig, ViteInsetLoaderOptions, OPTIONS } from './types';
 import { SFCScriptBlock } from '@vue/compiler-sfc';
 // 反序列化后的pages.json对象
 let pagesJson: any = {};
@@ -18,8 +13,7 @@ let insetLoader: InsetLoaderConfig = {};
 let rootPath = process.env.UNI_INPUT_DIR || process.env.INIT_CWD + '\\src';
 
 // 获取到需要插入的所有label标签
-const generateLabelCode = (labelArr: string[]): string =>
-  labelArr.map((e) => insetLoader?.config?.[e] || '').join('');
+const generateLabelCode = (labelArr: string[]): string => labelArr.map((e) => insetLoader?.config?.[e] || '').join('');
 
 // 反序列化pages.json并缓存，
 // 并根据pages.json分析是否有效并且需要后续逻辑处理
@@ -48,21 +42,15 @@ const getPagesMap = (): { [key: string]: LabelConfig } => {
       curPage.label && (obj['/' + item.path] = curPage);
       return obj;
     },
-    subpackages.reduce(
-      (
-        obj: { [key: string]: LabelConfig },
-        item: { root: string; pages: any[] },
-      ) => {
-        // 获取分包路由配置
-        const root = item.root;
-        item.pages.forEach((item: { path: string; style?: any }) => {
-          const curPage = getLabelConfig(item);
-          curPage.label && (obj['/' + root + '/' + item.path] = curPage);
-        });
-        return obj;
-      },
-      {},
-    ),
+    subpackages.reduce((obj: { [key: string]: LabelConfig }, item: { root: string; pages: any[] }) => {
+      // 获取分包路由配置
+      const root = item.root;
+      item.pages.forEach((item: { path: string; style?: any }) => {
+        const curPage = getLabelConfig(item);
+        curPage.label && (obj['/' + root + '/' + item.path] = curPage);
+      });
+      return obj;
+    }, {}),
   );
 };
 
@@ -80,9 +68,7 @@ const initInsetLoader = (): boolean => {
   // label：全局标签配置
   insetLoader.label = insetLoader.label || [];
   // config对象为空视为无效配置
-  const effective =
-    typeof insetLoader.config === 'object' &&
-    Object.keys(insetLoader.config).length > 0;
+  const effective = typeof insetLoader.config === 'object' && Object.keys(insetLoader.config).length > 0;
   return effective;
 };
 
@@ -91,26 +77,24 @@ const generateHtmlCode = (
   labelCode: string,
   packageEle: ViteInsetLoaderOptions | null, // 允许 packageEle 为 null
 ): string => {
-  const renderHtml = (): string => {
+  const regex = /<page-meta[^>]*>[\s\S]*<\/page-meta>/;
+
+  const renderHtml = (content): string => {
     // 创建一个正则表达式，用于移除 HTML 注释和首尾空白
     const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
     // 清理模板，移除注释和空白
-    return `${labelCode}\n${template.replace(regClean, '').trim()}\n`;
+    return `${labelCode}\n${content.replace(regClean, '').trim()}\n`;
   };
 
+  // 剔除原page-meta
+  const html = renderHtml(containsPageMetaTag(template) ? template.replace(regex, '') : template);
   // 确保模板内容存在
   if (!template) return '';
-
-  if (!packageEle) return renderHtml();
+  if (!packageEle) return html;
 
   const { label = 'div', options } = packageEle;
 
-  const {
-    class: className = '',
-    id = '',
-    style = {},
-    ...otherOptions
-  } = options;
+  const { class: className = '', id = '', style = {}, ...otherOptions } = options;
 
   // 构建样式属性
   const styleAttr =
@@ -125,7 +109,7 @@ const generateHtmlCode = (
     .map(([key, value]) => `${key}="${value}"`)
     .join(' ');
 
-  return `<${label} class="${className}" id="${id}" ${styleAttr} ${otherAttr}>${renderHtml()}</${label}>`;
+  return `<${label} class="${className}" id="${id}" ${styleAttr} ${otherAttr}>${html}</${label}>`;
 };
 
 // 根据compiler组合成style标签字符串代码
@@ -140,9 +124,7 @@ const generateStyleCode = (styles: any[]) =>
 
 // 根据compiler组合成script标签字符串代码
 const generateScriptCode = (script: SFCScriptBlock) => {
-  return `<script ${script?.lang ? `lang='${script?.lang}'` : ''} ${
-    script.setup ? 'setup' : null
-  }>
+  return `<script ${script?.lang ? `lang='${script?.lang}'` : ''} ${script.setup ? 'setup' : null}>
   ${script.content}
 </script>`;
 };
@@ -159,21 +141,26 @@ const getRoute = (resourcePath: string): string | null => {
 };
 
 // 根据include进行过滤执行
-const filterDirectoriesByInclude = (
-  rootDir: string,
-  options: OPTIONS,
-): string[] => {
+const filterDirectoriesByInclude = (rootDir: string, options: OPTIONS): string[] => {
   const { include } = options;
   if (Array.isArray(include)) {
-    const arrUrl = include?.map((url: string) =>
-      path.resolve(rootDir, url).replace(/\\/g, '/'),
-    );
+    const arrUrl = include?.map((url: string) => path.resolve(rootDir, url).replace(/\\/g, '/'));
     return arrUrl;
   } else {
     return [path.resolve(rootDir, include || 'src').replace(/\\/g, '/')];
   }
 };
 
+// 匹配page-meta内容
+const getTemplatePageMeta = (template: string) => {
+  const regex = /<page-meta[^>]*>[\s\S]*<\/page-meta>/;
+  return template.match(regex);
+};
+// 判断字符中是否存在page-meta标签
+const containsPageMetaTag = (htmlString: string) => {
+  const pageMateTagPattern = /<page-meta\b[^>]*>/i;
+  return pageMateTagPattern.test(htmlString);
+};
 export {
   initPages,
   getPagesMap,
@@ -183,4 +170,5 @@ export {
   generateStyleCode,
   generateScriptCode,
   filterDirectoriesByInclude,
+  getTemplatePageMeta,
 };
