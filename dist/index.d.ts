@@ -43,5 +43,6 @@ declare const generateStyleCode: (styles: any[]) => any;
 declare const generateScriptCode: (script: SFCScriptBlock) => string;
 declare const getRoute: (resourcePath: string) => string | null;
 declare const filterDirectoriesByInclude: (rootDir: string, options: OPTIONS) => string[];
+declare const getTemplatePageMeta: (template: string) => string;
 
-export { InsetLoaderConfig, LabelConfig, OPTIONS, ViteInsetLoaderOptions, viteInsetLoader as default, filterDirectoriesByInclude, generateHtmlCode, generateLabelCode, generateScriptCode, generateStyleCode, getPagesMap, getRoute, initPages };
+export { InsetLoaderConfig, LabelConfig, OPTIONS, ViteInsetLoaderOptions, viteInsetLoader as default, filterDirectoriesByInclude, generateHtmlCode, generateLabelCode, generateScriptCode, generateStyleCode, getPagesMap, getRoute, getTemplatePageMeta, initPages };

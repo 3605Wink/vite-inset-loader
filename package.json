@@ -24,7 +24,7 @@
   "scripts": {
     "dev": "pnpm run build --watch --ignore-watch examples",
     "build": "tsup",
-    "test": "cd examples/GyUi && pnpm weixin",
+    "test": "cd examples/test && pnpm weixin",
     "prepublishOnly": "pnpm run build",
     "release": "npx bumpp --push --tag --commit && pnpm publish"
   },

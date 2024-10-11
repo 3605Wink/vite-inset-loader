@@ -38,6 +38,7 @@ __export(src_exports, {
   generateStyleCode: () => generateStyleCode,
   getPagesMap: () => getPagesMap,
   getRoute: () => getRoute,
+  getTemplatePageMeta: () => getTemplatePageMeta,
   initPages: () => initPages
 });
 module.exports = __toCommonJS(src_exports);
@@ -164,17 +165,14 @@ var getPagesMap = () => {
       curPage.label && (obj["/" + item.path] = curPage);
       return obj;
     },
-    subpackages.reduce(
-      (obj, item) => {
-        const root = item.root;
-        item.pages.forEach((item2) => {
-          const curPage = getLabelConfig(item2);
-          curPage.label && (obj["/" + root + "/" + item2.path] = curPage);
-        });
-        return obj;
-      },
-      {}
-    )
+    subpackages.reduce((obj, item) => {
+      const root = item.root;
+      item.pages.forEach((item2) => {
+        const curPage = getLabelConfig(item2);
+        curPage.label && (obj["/" + root + "/" + item2.path] = curPage);
+      });
+      return obj;
+    }, {})
   );
 };
 var getLabelConfig = (json) => {
@@ -190,26 +188,23 @@ var initInsetLoader = () => {
   return effective;
 };
 var generateHtmlCode = (template, labelCode, packageEle) => {
-  const renderHtml = () => {
+  const regex = /<page-meta[^>]*>[\s\S]*<\/page-meta>/;
+  const renderHtml = (content) => {
     const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
     return `${labelCode}
-${template.replace(regClean, "").trim()}
+${content.replace(regClean, "").trim()}
 `;
   };
+  const html = renderHtml(containsPageMetaTag(template) ? template.replace(regex, "") : template);
   if (!template)
     return "";
   if (!packageEle)
-    return renderHtml();
+    return html;
   const { label = "div", options } = packageEle;
-  const {
-    class: className = "",
-    id = "",
-    style = {},
-    ...otherOptions
-  } = options;
+  const { class: className = "", id = "", style = {}, ...otherOptions } = options;
   const styleAttr = Object.keys(style).length > 0 ? `style="${Object.entries(style).map(([key, value]) => `${key}:${value}`).join(";")}"` : "";
   const otherAttr = Object.entries(otherOptions).map(([key, value]) => `${key}="${value}"`).join(" ");
-  return `<${label} class="${className}" id="${id}" ${styleAttr} ${otherAttr}>${renderHtml()}</${label}>`;
+  return `<${label} class="${className}" id="${id}" ${styleAttr} ${otherAttr}>${html}</${label}>`;
 };
 var generateStyleCode = (styles) => styles.reduce((str, item, _i) => {
   return str += `<style ${item.lang ? "lang='" + item.lang + "'" : ""} ${item.scoped ? "scoped='" + item.scoped + "'" : ""}>
@@ -232,13 +227,20 @@ var getRoute = (resourcePath) => {
 var filterDirectoriesByInclude = (rootDir2, options) => {
   const { include } = options;
   if (Array.isArray(include)) {
-    const arrUrl = include == null ? void 0 : include.map(
-      (url) => import_path.default.resolve(rootDir2, url).replace(/\\/g, "/")
-    );
+    const arrUrl = include == null ? void 0 : include.map((url) => import_path.default.resolve(rootDir2, url).replace(/\\/g, "/"));
     return arrUrl;
   } else {
     return [import_path.default.resolve(rootDir2, include || "src").replace(/\\/g, "/")];
   }
+};
+var getTemplatePageMeta = (template) => {
+  const regex = /<page-meta[^>]*>[\s\S]*?<\/page-meta>/;
+  const match = template.match(regex);
+  return match ? match[0] : "";
+};
+var containsPageMetaTag = (htmlString) => {
+  const pageMateTagPattern = /<page-meta\b[^>]*>/i;
+  return pageMateTagPattern.test(htmlString);
 };
 
 // src/plugin.ts
@@ -259,11 +261,8 @@ var viteInsetLoader = (options) => ({
     rootDir = config.root;
   },
   transform: (content, id) => {
-    var _a;
-    const allDirectories = filterDirectoriesByInclude(
-      rootDir,
-      options || { include: "src" }
-    );
+    var _a, _b;
+    const allDirectories = filterDirectoriesByInclude(rootDir, options || { include: "src" });
     if (!allDirectories.some((path2) => id.includes(path2)))
       return;
     if (!initialized) {
@@ -278,16 +277,14 @@ var viteInsetLoader = (options) => ({
       return content;
     const { descriptor } = (0, import_compiler_sfc.parse)(content);
     const labelCode = generateLabelCode(curPage.label);
-    const template = generateHtmlCode(
-      ((_a = descriptor.template) == null ? void 0 : _a.content) || "",
-      labelCode,
-      curPage.package
-    );
+    const template = generateHtmlCode(((_a = descriptor.template) == null ? void 0 : _a.content) || "", labelCode, curPage.package);
+    const pageMete = getTemplatePageMeta(((_b = descriptor.template) == null ? void 0 : _b.content) || "");
     const style = generateStyleCode((descriptor == null ? void 0 : descriptor.styles) || []);
     const scriptSetup = (descriptor == null ? void 0 : descriptor.scriptSetup) == null ? null : generateScriptCode(descriptor == null ? void 0 : descriptor.scriptSetup);
     const script = (descriptor == null ? void 0 : descriptor.script) == null ? null : generateScriptCode(descriptor == null ? void 0 : descriptor.script);
     return `
 <template>
+${pageMete}
 ${template}
 </template>
 ${scriptSetup || ""}
@@ -308,5 +305,6 @@ var src_default = viteInsetLoader;
   generateStyleCode,
   getPagesMap,
   getRoute,
+  getTemplatePageMeta,
   initPages
 });

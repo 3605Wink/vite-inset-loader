@@ -69,13 +69,15 @@ export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
     // 生成代码片段
     const labelCode = generateLabelCode(curPage.label!);
     const template = generateHtmlCode(descriptor.template?.content || '', labelCode, curPage.package!);
+    const pageMete = getTemplatePageMeta(descriptor.template?.content || '');
     const style = generateStyleCode(descriptor?.styles || []);
     const scriptSetup = descriptor?.scriptSetup == null ? null : generateScriptCode(descriptor?.scriptSetup);
     const script = descriptor?.script == null ? null : generateScriptCode(descriptor?.script);
     // 返回处理后的内容
+
     return `
 <template>
-${getTemplatePageMeta(template)}
+${pageMete}
 ${template}
 </template>
 ${scriptSetup || ''}

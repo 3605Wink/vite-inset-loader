@@ -152,9 +152,10 @@ const filterDirectoriesByInclude = (rootDir: string, options: OPTIONS): string[]
 };
 
 // 匹配page-meta内容
-const getTemplatePageMeta = (template: string) => {
-  const regex = /<page-meta[^>]*>[\s\S]*<\/page-meta>/;
-  return template.match(regex);
+const getTemplatePageMeta = (template: string): string => {
+  const regex = /<page-meta[^>]*>[\s\S]*?<\/page-meta>/;
+  const match = template.match(regex);
+  return match ? match[0] : '';
 };
 // 判断字符中是否存在page-meta标签
 const containsPageMetaTag = (htmlString: string) => {
