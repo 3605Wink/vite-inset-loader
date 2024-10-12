@@ -1,6 +1,6 @@
 {
   "name": "vite-inset-loader",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "在Vite构建的Vue应用中，编译阶段在SFC模板指定位置插入自定义内容，适用于需要在每个页面引入组件的小程序场景。",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
