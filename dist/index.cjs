@@ -188,7 +188,8 @@ var initInsetLoader = () => {
   return effective;
 };
 var generateHtmlCode = (template, labelCode, packageEle) => {
-  const regex = /<page-meta[^>]*>[\s\S]*<\/page-meta>/;
+  const hasClosingTag = ["</pageMeta>", "</PageMeta>", "</page-meta>"].some((label2) => template.includes(label2));
+  const regex = hasClosingTag ? /<(page-meta|PageMeta|pageMeta)\b[^>]*>([\s\S]*?)<\/\1>/gi : /<(page-meta|PageMeta|pageMeta)\b[^>]*\/>/gi;
   const renderHtml = (content) => {
     const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
     return `${labelCode}
@@ -234,8 +235,9 @@ var filterDirectoriesByInclude = (rootDir2, options) => {
   }
 };
 var getTemplatePageMeta = (template) => {
-  const regex = /<page-meta[^>]*>[\s\S]*?<\/page-meta>/;
-  const match = template.match(regex);
+  const hasClosingTag = ["</pageMeta>", "</PageMeta>", "</page-meta>"].some((label) => template.includes(label));
+  const regex = hasClosingTag ? /<(page-meta|PageMeta|pageMeta)\b[^>]*>([\s\S]*?)<\/\1>/gi : /<(page-meta|PageMeta|pageMeta)\b[^>]*\/>/gi;
+  const match = regex.exec(template);
   return match ? match[0] : "";
 };
 var containsPageMetaTag = (htmlString) => {

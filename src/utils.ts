@@ -77,7 +77,10 @@ const generateHtmlCode = (
   labelCode: string,
   packageEle: ViteInsetLoaderOptions | null, // 允许 packageEle 为 null
 ): string => {
-  const regex = /<page-meta[^>]*>[\s\S]*<\/page-meta>/;
+  const hasClosingTag = ['</pageMeta>', '</PageMeta>', '</page-meta>'].some((label) => template.includes(label));
+  const regex = hasClosingTag
+    ? /<(page-meta|PageMeta|pageMeta)\b[^>]*>([\s\S]*?)<\/\1>/gi
+    : /<(page-meta|PageMeta|pageMeta)\b[^>]*\/>/gi;
 
   const renderHtml = (content): string => {
     // 创建一个正则表达式，用于移除 HTML 注释和首尾空白
@@ -151,10 +154,14 @@ const filterDirectoriesByInclude = (rootDir: string, options: OPTIONS): string[]
   }
 };
 
-// 匹配page-meta内容
+/// 匹配page-meta内容
 const getTemplatePageMeta = (template: string): string => {
-  const regex = /<page-meta[^>]*>[\s\S]*?<\/page-meta>/;
-  const match = template.match(regex);
+  const hasClosingTag = ['</pageMeta>', '</PageMeta>', '</page-meta>'].some((label) => template.includes(label));
+  const regex = hasClosingTag
+    ? /<(page-meta|PageMeta|pageMeta)\b[^>]*>([\s\S]*?)<\/\1>/gi
+    : /<(page-meta|PageMeta|pageMeta)\b[^>]*\/>/gi;
+
+  const match = regex.exec(template);
   return match ? match[0] : '';
 };
 // 判断字符中是否存在page-meta标签
