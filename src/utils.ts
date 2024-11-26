@@ -169,6 +169,7 @@ const containsPageMetaTag = (htmlString: string) => {
   const pageMateTagPattern = /<page-meta\b[^>]*>/i;
   return pageMateTagPattern.test(htmlString);
 };
+
 export {
   initPages,
   getPagesMap,
