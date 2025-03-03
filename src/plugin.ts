@@ -62,10 +62,15 @@ export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
     const curPage = pagesMap[route];
     // 如果当前页面没有配置，不处理
     if (curPage == undefined) return content;
+    // 正则使用方法
+
+    const regex =
+      /<script\s+(?:module="(?:utils|test)"\s+lang="(?:wxs|sjs|filter\.js)")(?:\s+src=".*?")?\s*(?:\/>|>(?:[\s\S]*?)<\/script>)/g;
+    const matches = content.match(regex);
+    const skipScript = matches?.length == 0 ? null : matches?.[0];
 
     // 解析 Vue 单文件组件内容
     const { descriptor } = parse(content);
-
     // 生成代码片段
     const labelCode = generateLabelCode(curPage.label!);
     const template = generateHtmlCode(descriptor.template?.content || '', labelCode, curPage.package!);
@@ -74,12 +79,24 @@ export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
     const scriptSetup = descriptor?.scriptSetup == null ? null : generateScriptCode(descriptor?.scriptSetup);
     const script = descriptor?.script == null ? null : generateScriptCode(descriptor?.script);
     // 返回处理后的内容
+    // console.log(descriptor);
+    console.log(`
+<template>
+${pageMete}
+${template}
+</template>
+${skipScript || ''}
+${scriptSetup || ''}
+${script || ''}
+${style || ''}
+    `);
 
     return `
 <template>
 ${pageMete}
 ${template}
 </template>
+${skipScript || ''}
 ${scriptSetup || ''}
 ${script || ''}
 ${style || ''}

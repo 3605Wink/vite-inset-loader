@@ -127,6 +127,7 @@ const generateStyleCode = (styles: any[]) =>
 
 // 根据compiler组合成script标签字符串代码
 const generateScriptCode = (script: SFCScriptBlock) => {
+  
   return `<script ${script?.lang ? `lang='${script?.lang}'` : ''} ${script.setup ? 'setup' : null}>
   ${script.content}
 </script>`;
