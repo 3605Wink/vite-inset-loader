@@ -65,7 +65,7 @@ export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
     // 正则使用方法
 
     const regex =
-      /<script\s+(?:module="(?:utils|test)"\s+lang="(?:wxs|sjs|filter\.js)")(?:\s+src=".*?")?\s*(?:\/>|>(?:[\s\S]*?)<\/script>)/g;
+      /<script\s+module=".*?"\s+lang="(?:wxs|sjs|filter\.js)"(?:\s+src=".*?")?\s*(?:\/>|>(?:[\s\S]*?)<\/script>)/g;
     const matches = content.match(regex);
     const skipScript = matches?.length == 0 ? null : matches?.[0];
 
@@ -79,17 +79,6 @@ export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
     const scriptSetup = descriptor?.scriptSetup == null ? null : generateScriptCode(descriptor?.scriptSetup);
     const script = descriptor?.script == null ? null : generateScriptCode(descriptor?.script);
     // 返回处理后的内容
-    // console.log(descriptor);
-    console.log(`
-<template>
-${pageMete}
-${template}
-</template>
-${skipScript || ''}
-${scriptSetup || ''}
-${script || ''}
-${style || ''}
-    `);
 
     return `
 <template>
