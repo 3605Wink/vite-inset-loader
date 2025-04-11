@@ -277,7 +277,7 @@ var viteInsetLoader = (options) => ({
     const curPage = pagesMap[route];
     if (curPage == void 0)
       return content;
-    const regex = /<script\s+(?:module="(?:utils|test)"\s+lang="(?:wxs|sjs|filter\.js)")(?:\s+src=".*?")?\s*(?:\/>|>(?:[\s\S]*?)<\/script>)/g;
+    const regex = /<script\s+module=".*?"\s+lang="(?:wxs|sjs|filter\.js)"(?:\s+src=".*?")?\s*(?:\/>|>(?:[\s\S]*?)<\/script>)/g;
     const matches = content.match(regex);
     const skipScript = (matches == null ? void 0 : matches.length) == 0 ? null : matches == null ? void 0 : matches[0];
     const { descriptor } = (0, import_compiler_sfc.parse)(content);
@@ -287,16 +287,6 @@ var viteInsetLoader = (options) => ({
     const style = generateStyleCode((descriptor == null ? void 0 : descriptor.styles) || []);
     const scriptSetup = (descriptor == null ? void 0 : descriptor.scriptSetup) == null ? null : generateScriptCode(descriptor == null ? void 0 : descriptor.scriptSetup);
     const script = (descriptor == null ? void 0 : descriptor.script) == null ? null : generateScriptCode(descriptor == null ? void 0 : descriptor.script);
-    console.log(`
-<template>
-${pageMete}
-${template}
-</template>
-${skipScript || ""}
-${scriptSetup || ""}
-${script || ""}
-${style || ""}
-    `);
     return `
 <template>
 ${pageMete}
