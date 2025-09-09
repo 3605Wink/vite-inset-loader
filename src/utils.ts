@@ -118,16 +118,24 @@ const generateHtmlCode = (
 // 根据compiler组合成style标签字符串代码
 const generateStyleCode = (styles: any[]) =>
   styles.reduce((str, item, _i) => {
-    return (str += `<style ${item.lang ? "lang='" + item.lang + "'" : ''} ${
-      item.scoped ? "scoped='" + item.scoped + "'" : ''
-    }>
-		${item.content}
-	</style>`);
+    // 构建属性字符串
+    let attrs = '';
+    if (item.lang) attrs += ` lang='${item.lang}'`;
+    if (item.scoped) attrs += ` scoped`; // scoped 是布尔属性，不需要值
+    if (item.src) attrs += ` src='${item.src}'`; // 关键：添加对 src 属性的支持
+
+    // 根据是否有 src 属性来决定如何生成标签
+    if (item.src) {
+      // 如果有 src，则生成自闭合标签或空标签，Vite 会根据 src 去加载文件
+      return str + `<style${attrs}></style>\n`;
+    } else {
+      // 如果没有 src，则将 content 作为标签体
+      return str + `<style${attrs}>\n${item.content}\n</style>\n`;
+    }
   }, '');
 
 // 根据compiler组合成script标签字符串代码
 const generateScriptCode = (script: SFCScriptBlock) => {
-  
   return `<script ${script?.lang ? `lang='${script?.lang}'` : ''} ${script.setup ? 'setup' : null}>
   ${script.content}
 </script>`;
