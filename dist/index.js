@@ -163,9 +163,22 @@ ${content.replace(regClean, "").trim()}
   return `<${label} class="${className}" id="${id}" ${styleAttr} ${otherAttr}>${html}</${label}>`;
 };
 var generateStyleCode = (styles) => styles.reduce((str, item, _i) => {
-  return str += `<style ${item.lang ? "lang='" + item.lang + "'" : ""} ${item.scoped ? "scoped='" + item.scoped + "'" : ""}>
-		${item.content}
-	</style>`;
+  let attrs = "";
+  if (item.lang)
+    attrs += ` lang='${item.lang}'`;
+  if (item.scoped)
+    attrs += ` scoped`;
+  if (item.src)
+    attrs += ` src='${item.src}'`;
+  if (item.src) {
+    return str + `<style${attrs}></style>
+`;
+  } else {
+    return str + `<style${attrs}>
+${item.content}
+</style>
+`;
+  }
 }, "");
 var generateScriptCode = (script) => {
   return `<script ${(script == null ? void 0 : script.lang) ? `lang='${script == null ? void 0 : script.lang}'` : ""} ${script.setup ? "setup" : null}>
