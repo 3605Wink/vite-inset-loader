@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs';
-import stripJsonComments from './module/strip-json-comments';
+import stripJsonComments from '../module/strip-json-comments';
 import path from 'path';
 import { InsetLoaderConfig, LabelConfig, ViteInsetLoaderOptions, OPTIONS } from './types';
 import { SFCScriptBlock } from '@vue/compiler-sfc';
@@ -82,7 +82,11 @@ const generateHtmlCode = (
     ? /<(page-meta|PageMeta|pageMeta)\b[^>]*>([\s\S]*?)<\/\1>/gi
     : /<(page-meta|PageMeta|pageMeta)\b[^>]*\/>/gi;
 
-  const renderHtml = (content): string => {
+  interface RenderHtml {
+    (content: string): string;
+  }
+
+  const renderHtml: RenderHtml = (content: string): string => {
     // 创建一个正则表达式，用于移除 HTML 注释和首尾空白
     const regClean = /<!--(?!.*?(#ifdef|#ifndef|#endif)).*?-->|^\s+|\s+$/g;
     // 清理模板，移除注释和空白

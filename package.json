@@ -1,6 +1,6 @@
 {
   "name": "vite-inset-loader",
-  "version": "1.0.10",
+  "version": "2.0.1",
   "description": "在Vite构建的Vue应用中，编译阶段在SFC模板指定位置插入自定义内容，适用于需要在每个页面引入组件的小程序场景。",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -9,18 +9,27 @@
     ".": {
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
-      "import": "./dist/index.js"
-    },
-    "./*": "./*"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/3605Wink/vite-inset-loader.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "docs"
   ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "dev": "pnpm run build --watch --ignore-watch examples",
     "build": "tsup",
@@ -55,6 +64,7 @@
     "chokidar": "^3.6.0",
     "debug": "^4.3.5",
     "strip-json-comments": "^5.0.1",
+    "tslog": "^4.9.3",
     "vue-loader": "^17.4.2"
   }
 }
