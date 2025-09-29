@@ -42,25 +42,29 @@ import { defineConfig } from 'vite';
 import uni from '@dcloudio/vite-plugin-uni';
 import { UniViteRootInjector } from 'vite-inset-loader';
 import { resolve } from 'node:path';
-// 若配置 dts，请在项目中显式引用生成的类型（例如 types/auto-route.d.ts）
-// import type { Path } from './types/auto-route';
+// 若配置 dts，请在项目中显式引用生成的类型
+import type { Path } from './types/auto-page.d';
 
 const components = {
-  message: '<gy-message ref="messageRef"></gy-message>',
-  dialog: '<gy-dialog ref="dialogRef"></gy-dialog>',
+  privacyModal: '<privacyModal></privacyModal>',
+  message: '<GyMessage ref="messageRef"></GyMessage>',
+  dialog: '<GyDialog ref="dialogRef"></GyDialog>',
+  messageBox: '<wd-message-box></wd-message-box>',
+  toast: '<wd-toast />',
 } as const;
 
 export default defineConfig({
   plugins: [
     uni(),
-    UniViteRootInjector({
-      dts: resolve(__dirname, 'types/auto-route.d.ts'),
+    UniViteRootInjector<Path, typeof components>({
+      dts: resolve(__dirname, 'types/auto-page.d.ts'),
       components,
       insertPos: {
         mode: 'GLOBAL',
-        exclude: ['pages/login/index'],
+        exclude: ['login' as Path], // Path 类型：pages/login/index -> login
         handlePos: [
-          { page: 'pages/home/index', insert: ['message'] },
+          { page: 'home' as Path, insert: ['message'] }, // Path 类型：pages/home/index -> home
+          { page: 'sub_initiateEvaluation' as Path, insert: ['toast'] }, // 分包：subPackages/sub/initiateEvaluation/index -> sub_initiateEvaluation
         ],
       },
     }),
@@ -72,7 +76,12 @@ export default defineConfig({
 
 - dts: 路由类型文件生成路径，缺省生成到默认位置
 - components: 组件别名到组件字符串的映射，支持类型推断
-- insertPos: 注入策略（GLOBAL/排除/页面特定配置）
+- insertPos: 注入策略配置
+  - mode: 'GLOBAL'（全局模式）
+  - exclude: Path[] - 排除的页面路径，使用 Path 类型枚举值
+    - 主包页面：`pages/home/index` → `home`
+    - 分包页面：`subPackages/sub/initiateEvaluation/index` → `sub_initiateEvaluation`
+  - handlePos: 页面特定配置，其中 page 参数为 Path 类型枚举值（生成规则同上）
 - includes/watchFile: 可选的包含与监听配置
 
 ## 使用 UniViteInsetLoader（兼容模式）

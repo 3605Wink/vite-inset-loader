@@ -27,22 +27,29 @@ import uni from '@dcloudio/vite-plugin-uni';
 import { UniViteRootInjector } from 'vite-inset-loader';
 import { resolve } from 'node:path';
 
+// 若配置 dts，请在项目中显式引用生成的类型
+import type { Path } from './types/auto-page.d';
+
 const components = {
-  message: '<gy-message ref="messageRef"></gy-message>',
-  dialog: '<gy-dialog ref="dialogRef"></gy-dialog>',
+  privacyModal: '<privacyModal></privacyModal>',
+  message: '<GyMessage ref="messageRef"></GyMessage>',
+  dialog: '<GyDialog ref="dialogRef"></GyDialog>',
+  messageBox: '<wd-message-box></wd-message-box>',
+  toast: '<wd-toast />',
 } as const;
 
 export default defineConfig({
   plugins: [
     uni(),
-    UniViteRootInjector({
-      dts: resolve(__dirname, 'types/auto-route.d.ts'),
+    UniViteRootInjector<Path, typeof components>({
+      dts: resolve(__dirname, 'types/auto-page.d.ts'),
       components,
       insertPos: {
         mode: 'GLOBAL',
-        exclude: ['pages/login/index'],
+        exclude: ['login' as Path], // Path 类型：pages/login/index -> login
         handlePos: [
-          { page: 'pages/home/index', insert: ['message'] },
+          { page: 'home' as Path, insert: ['message'] }, // Path 类型：pages/home/index -> home
+          { page: 'sub_initiateEvaluation' as Path, insert: ['toast'] }, // 分包：subPackages/sub/initiateEvaluation/index -> sub_initiateEvaluation
         ],
       },
     }),
@@ -105,8 +112,10 @@ export type AutoConfigObject<
   - 组件别名到模板片段的映射，建议使用 const 断言以启用键名推断
 - insertPos: InsertPosConfig（默认 { mode: 'GLOBAL' }）
   - mode: 'GLOBAL'（当前仅此模式）
-  - exclude: string[]（默认 []）
-  - handlePos: Array<{ page?: string; insert?: string[] }>
+  - exclude: Path[]（默认 []）- 排除的页面路径，使用 Path 类型枚举值
+    - 主包页面：`pages/home/index` → `home`
+    - 分包页面：`subPackages/sub/initiateEvaluation/index` → `sub_initiateEvaluation`
+  - handlePos: Array<{ page?: Path; insert?: string[] }> - 页面特定配置，page 使用 Path 类型
 - includes: string[] | undefined（默认 undefined）
   - 可用于限制需要处理的路径集合
 - watchFile: string | string[] | undefined（默认 ['src/pages.json'] 或内部默认）
@@ -115,17 +124,25 @@ export type AutoConfigObject<
 ### 类型友好用法
 
 ```ts
-const components = {
-  message: '<gy-message />',
-  dialog: '<gy-dialog />',
-} as const; // 关键：const 断言使得 insert 只能取 'message' | 'dialog'
+import type { Path } from './types/auto-page.d';
 
-UniViteRootInjector({
+const components = {
+  privacyModal: '<privacyModal></privacyModal>',
+  message: '<GyMessage ref="messageRef"></GyMessage>',
+  dialog: '<GyDialog ref="dialogRef"></GyDialog>',
+  messageBox: '<wd-message-box></wd-message-box>',
+  toast: '<wd-toast />',
+} as const; // 关键：const 断言使得 insert 只能取组件键名
+
+UniViteRootInjector<Path, typeof components>({
+  dts: resolve(__dirname, 'types/auto-page.d.ts'),
   components,
   insertPos: {
     mode: 'GLOBAL',
+    exclude: ['login' as Path], // 主包：pages/login/index -> login
     handlePos: [
-      { page: 'pages/home/index', insert: ['message'] }, // 自动校验 'message' 是否存在
+      { page: 'home' as Path, insert: ['message', 'toast'] }, // 主包：pages/home/index -> home
+      { page: 'sub_initiateEvaluation' as Path, insert: ['privacyModal'] }, // 分包：subPackages/sub/initiateEvaluation/index -> sub_initiateEvaluation
     ],
   },
 });
