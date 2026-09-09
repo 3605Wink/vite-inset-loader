@@ -169,22 +169,29 @@ export const analyzePages = (): PageAnalysisResult => {
   if (mode === 'GLOBAL' && components) {
     const defaultLabels = Object.keys(components);
 
+    // 预构建索引，避免对每个页面做线性扫描（页面数 N * 配置项 M → O(N+M)）
+    const excludeSet = new Set(exclude.map((p) => (p.startsWith('/') ? p : `/${p}`)));
+    const handlePosMap = new Map<string, string[]>();
+    for (const item of handlePos) {
+      if (!item.page) continue;
+      const norm = item.page.startsWith('/') ? item.page : `/${item.page}`;
+      handlePosMap.set(norm, item.insert ?? []);
+    }
+
     paths.forEach(({ path }) => {
       const normPath = path.startsWith('/') ? path : `/${path}`;
 
       // 检查是否在排除列表中
-      if (exclude.some((p) => normPath === (p.startsWith('/') ? p : `/${p}`))) {
+      if (excludeSet.has(normPath)) {
         return;
       }
 
       // 获取页面特定配置
-      const pageConfig = handlePos.find(
-        (item) => normPath === (item.page?.startsWith('/') ? item.page : `/${item.page}`),
-      );
+      const insert = handlePosMap.get(normPath);
 
       // 应用标签配置
       result[path] = {
-        label: pageConfig?.insert ?? defaultLabels,
+        label: insert ?? defaultLabels,
       };
     });
   }
@@ -225,7 +232,7 @@ export const getInsertLabelDom = (labelArr: string[]): string => {
     const configManager = ConfigManager.getInstance();
     const { components } = configManager.getRootOption();
 
-    if (!components || Object.keys(components).length === 0) {
+    if (!components) {
       return '';
     }
 

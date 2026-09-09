@@ -3,11 +3,7 @@ import { defineConfig } from 'tsup';
 const EXTERNAL_PACKAGES = [
   'vite',
   '@vue/compiler-sfc',
-  'vue-loader',
-  'chokidar',
-  'debug',
   'tslog',
-  'strip-json-comments',
 ];
 
 export default defineConfig({
@@ -18,7 +14,7 @@ export default defineConfig({
   sourcemap: true,
   splitting: false,
   treeshake: true,
-  target: 'node16',
+  target: 'node20',
   platform: 'node',
   skipNodeModulesBundle: true,
   external: EXTERNAL_PACKAGES,

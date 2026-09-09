@@ -13,8 +13,8 @@ var path__default = /*#__PURE__*/_interopDefault(path);
 // src/vite-inset-loader/plugin.ts
 
 // src/module/strip-json-comments/index.js
-var singleComment = Symbol("singleComment");
-var multiComment = Symbol("multiComment");
+var singleComment = /* @__PURE__ */ Symbol("singleComment");
+var multiComment = /* @__PURE__ */ Symbol("multiComment");
 var stripWithoutWhitespace = () => "";
 var stripWithWhitespace = (string, start, end) => string.slice(start, end).replace(/\S/g, " ");
 var isEscaped = (jsonString, quotePosition) => {
@@ -102,12 +102,9 @@ function stripJsonComments(jsonString, { whitespace = true, trailingCommas = fal
 var pagesJson = {};
 var insetLoader = {};
 var rootPath = process.env.UNI_INPUT_DIR || process.env.INIT_CWD + "\\src";
-var generateLabelCode = (labelArr) => labelArr.map((e) => {
-  var _a;
-  return ((_a = insetLoader == null ? void 0 : insetLoader.config) == null ? void 0 : _a[e]) || "";
-}).join("");
+var generateLabelCode = (labelArr) => labelArr.map((e) => insetLoader?.config?.[e] || "").join("");
 var initPages = (that) => {
-  let pagesPath = ((that == null ? void 0 : that.query) || {}).pagesPath;
+  let pagesPath = (that?.query || {}).pagesPath;
   if (!pagesPath) {
     pagesPath = path__default.default.resolve(rootPath, "pages.json");
   } else {
@@ -157,10 +154,8 @@ ${content.replace(regClean, "").trim()}
 `;
   };
   const html = renderHtml(containsPageMetaTag(template) ? template.replace(regex, "") : template);
-  if (!template)
-    return "";
-  if (!packageEle)
-    return html;
+  if (!template) return "";
+  if (!packageEle) return html;
   const { label = "div", options } = packageEle;
   const { class: className = "", id = "", style = {}, ...otherOptions } = options;
   const styleAttr = Object.keys(style).length > 0 ? `style="${Object.entries(style).map(([key, value]) => `${key}:${value}`).join(";")}"` : "";
@@ -169,12 +164,9 @@ ${content.replace(regClean, "").trim()}
 };
 var generateStyleCode = (styles) => styles.reduce((str, item, _i) => {
   let attrs = "";
-  if (item.lang)
-    attrs += ` lang='${item.lang}'`;
-  if (item.scoped)
-    attrs += ` scoped`;
-  if (item.src)
-    attrs += ` src='${item.src}'`;
+  if (item.lang) attrs += ` lang='${item.lang}'`;
+  if (item.scoped) attrs += ` scoped`;
+  if (item.src) attrs += ` src='${item.src}'`;
   if (item.src) {
     return str + `<style${attrs}></style>
 `;
@@ -186,7 +178,7 @@ ${item.content}
   }
 }, "");
 var generateScriptCode = (script) => {
-  return `<script ${(script == null ? void 0 : script.lang) ? `lang='${script == null ? void 0 : script.lang}'` : ""} ${script.setup ? "setup" : null}>
+  return `<script ${script?.lang ? `lang='${script?.lang}'` : ""} ${script.setup ? "setup" : null}>
   ${script.content}
 </script>`;
 };
@@ -201,7 +193,7 @@ var getRoute = (resourcePath) => {
 var filterDirectoriesByInclude = (rootDir2, options) => {
   const { include } = options;
   if (Array.isArray(include)) {
-    const arrUrl = include == null ? void 0 : include.map((url) => path__default.default.resolve(rootDir2, url).replace(/\\/g, "/"));
+    const arrUrl = include?.map((url) => path__default.default.resolve(rootDir2, url).replace(/\\/g, "/"));
     return arrUrl;
   } else {
     return [path__default.default.resolve(rootDir2, include || "src").replace(/\\/g, "/")];
@@ -227,7 +219,6 @@ var rootDir;
 var normalizePath = (value) => value.replace(/\\/g, "/");
 var isTrackedFile = (id) => includeDirectories.some((dir) => id.startsWith(dir));
 var initializePages = (that) => {
-  var _a;
   shouldHandle = false;
   pagesMap = {};
   try {
@@ -236,13 +227,16 @@ var initializePages = (that) => {
       pagesMap = getPagesMap();
     }
   } catch (error) {
-    (_a = that == null ? void 0 : that.error) == null ? void 0 : _a.call(that, `vite-inset-loader: ${error instanceof Error ? error.message : String(error)}`);
+    that?.error?.(`vite-inset-loader: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     initialized = true;
   }
 };
 var viteInsetLoader = (options) => ({
   name: "vite-inset-loader",
+  // enforce:'pre' 确保在 Vite 核心 SFC 编译链之前拿到原始 .vue 源码,
+  // 与 UniViteRootInjector 保持一致的执行位置最佳实践(见 README「最佳使用位置」)。
+  enforce: "pre",
   configResolved(config) {
     rootDir = config.root;
     includeDirectories = filterDirectoriesByInclude(rootDir, options || { include: "src" }).map(normalizePath);
@@ -253,45 +247,32 @@ var viteInsetLoader = (options) => ({
     initializePages(this);
   },
   transform(content, id) {
-    var _a, _b;
     const normalizedId = normalizePath(id);
     if (!includeDirectories.length) {
       includeDirectories = filterDirectoriesByInclude(rootDir, options || { include: "src" }).map(normalizePath);
     }
-    if (!isTrackedFile(normalizedId))
-      return content;
+    if (!isTrackedFile(normalizedId)) return content;
     if (!initialized) {
       initializePages(this);
     }
-    if (!shouldHandle)
-      return content;
+    if (!shouldHandle) return content;
     const route = getRoute(normalizedId);
-    if (route == null)
-      return content;
+    if (route == null) return content;
     const curPage = pagesMap[route];
-    if (!curPage)
-      return content;
+    if (!curPage) return content;
     const matches = content.match(
       /<script\s+module=".*?"\s+lang="(?:wxs|sjs|filter\.js)"(?:\s+src=".*?")?\s*(?:\/>|>(?:[\s\S]*?)<\/script>)/
     );
-    const skipScript = (matches == null ? void 0 : matches[0]) ?? "";
+    const skipScript = matches?.[0] ?? "";
     const { descriptor } = compilerSfc.parse(content);
     const labelCode = generateLabelCode(curPage.label);
-    const template = generateHtmlCode(((_a = descriptor.template) == null ? void 0 : _a.content) || "", labelCode, curPage.package);
-    const pageMeta = getTemplatePageMeta(((_b = descriptor.template) == null ? void 0 : _b.content) || "");
-    const style = generateStyleCode((descriptor == null ? void 0 : descriptor.styles) || []);
-    const scriptSetup = (descriptor == null ? void 0 : descriptor.scriptSetup) ? generateScriptCode(descriptor.scriptSetup) : "";
-    const script = (descriptor == null ? void 0 : descriptor.script) ? generateScriptCode(descriptor.script) : "";
+    const template = generateHtmlCode(descriptor.template?.content || "", labelCode, curPage.package);
+    const pageMeta = getTemplatePageMeta(descriptor.template?.content || "");
+    const style = generateStyleCode(descriptor?.styles || []);
+    const scriptSetup = descriptor?.scriptSetup ? generateScriptCode(descriptor.scriptSetup) : "";
+    const script = descriptor?.script ? generateScriptCode(descriptor.script) : "";
     return ["<template>", pageMeta, template, "</template>", skipScript, scriptSetup, script, style].filter((segment) => typeof segment === "string" && segment.trim().length > 0).join("\n");
   }
-});
-var logger = new tslog.Logger({
-  name: "vite-plugin-uniapp-injector",
-  minLevel: process.env.NODE_ENV === "production" ? 3 : 1,
-  type: "pretty",
-  hideLogPositionForProduction: true,
-  prettyLogTimeZone: "local",
-  prettyLogTemplate: "{{yyyy}}.{{mm}}.{{dd}} {{hh}}:{{MM}}:{{ss}}	{{logLevelName}}	"
 });
 function isValidPageConfig(obj) {
   return !!obj && typeof obj === "object" && "path" in obj;
@@ -302,7 +283,7 @@ function isValidSubPackageConfig(obj) {
 function formatPagePath(root, path3) {
   return path.resolve(root, `${path3}.vue`).replace(/\\/g, "/");
 }
-var logger2 = new tslog.Logger({
+var logger = new tslog.Logger({
   name: "vite-inset-loader",
   minLevel: process.env.NODE_ENV === "production" ? 3 : 1,
   type: "pretty",
@@ -310,16 +291,17 @@ var logger2 = new tslog.Logger({
   prettyLogTimeZone: "local",
   prettyLogTemplate: "{{yyyy}}.{{mm}}.{{dd}} {{hh}}:{{MM}}:{{ss}}	{{logLevelName}}	"
 });
-var ConfigManager = class {
+var ConfigManager = class _ConfigManager {
+  static instance;
+  rootOption = null;
+  pagesList = null;
   constructor() {
-    this.rootOption = null;
-    this.pagesList = null;
   }
   static getInstance() {
-    if (!ConfigManager.instance) {
-      ConfigManager.instance = new ConfigManager();
+    if (!_ConfigManager.instance) {
+      _ConfigManager.instance = new _ConfigManager();
     }
-    return ConfigManager.instance;
+    return _ConfigManager.instance;
   }
   setRootOption(options) {
     this.rootOption = options;
@@ -399,33 +381,25 @@ var analyzePages = () => {
   });
   if (mode === "GLOBAL" && components) {
     const defaultLabels = Object.keys(components);
+    const excludeSet = new Set(exclude.map((p) => p.startsWith("/") ? p : `/${p}`));
+    const handlePosMap = /* @__PURE__ */ new Map();
+    for (const item of handlePos) {
+      if (!item.page) continue;
+      const norm = item.page.startsWith("/") ? item.page : `/${item.page}`;
+      handlePosMap.set(norm, item.insert ?? []);
+    }
     paths.forEach(({ path: path3 }) => {
       const normPath = path3.startsWith("/") ? path3 : `/${path3}`;
-      if (exclude.some((p) => normPath === (p.startsWith("/") ? p : `/${p}`))) {
+      if (excludeSet.has(normPath)) {
         return;
       }
-      const pageConfig = handlePos.find(
-        (item) => {
-          var _a;
-          return normPath === (((_a = item.page) == null ? void 0 : _a.startsWith("/")) ? item.page : `/${item.page}`);
-        }
-      );
+      const insert = handlePosMap.get(normPath);
       result[path3] = {
-        label: (pageConfig == null ? void 0 : pageConfig.insert) ?? defaultLabels
+        label: insert ?? defaultLabels
       };
     });
   }
   return result;
-};
-var insertLabel = (rootPath2, resourcePath) => {
-  try {
-    const pwd = rootPath2.replace(/\\/g, "/");
-    const relativePath = resourcePath.replace(pwd, "").replace(/\\/g, "/");
-    return relativePath.endsWith(".vue") ? relativePath.slice(0, -4) : relativePath;
-  } catch (error) {
-    logger2.error(`\u8DEF\u5F84\u5904\u7406\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
-    return null;
-  }
 };
 var getInsertLabelDom = (labelArr) => {
   try {
@@ -434,30 +408,30 @@ var getInsertLabelDom = (labelArr) => {
     }
     const configManager2 = ConfigManager.getInstance();
     const { components } = configManager2.getRootOption();
-    if (!components || Object.keys(components).length === 0) {
+    if (!components) {
       return "";
     }
     return labelArr.filter((label) => label && typeof label === "string" && label in components).map((label) => components[label]).join("\n");
   } catch (error) {
-    logger2.error(`\u751F\u6210\u7EC4\u4EF6DOM\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(`\u751F\u6210\u7EC4\u4EF6DOM\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
     return "";
   }
 };
 var HtmlGenerator = class {
+  static PAGE_META_REGEX = /<(?:page-meta|PageMeta|pageMeta)\b[^>]*(?:\/>|>([\s\S]*?)<\/\1)/gi;
+  static COMMENT_REGEX = /<!--(?!.*?(?:#ifdef|#ifndef|#endif)).*?-->/g;
   /**
    * 生成优化的 HTML 代码
    */
   static generateHtml(template, labelCode) {
     try {
-      if (!template)
-        return "";
+      if (!template) return "";
       const cleanTemplate = template.replace(this.PAGE_META_REGEX, "").replace(this.COMMENT_REGEX, "").trim();
-      if (!labelCode && !cleanTemplate)
-        return "";
+      if (!labelCode && !cleanTemplate) return "";
       const parts = [labelCode, cleanTemplate, ""].filter(Boolean);
       return parts.join("\n");
     } catch (error) {
-      logger2.error(`HTML\u751F\u6210\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(`HTML\u751F\u6210\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
       return template;
     }
   }
@@ -469,29 +443,23 @@ var HtmlGenerator = class {
       const match = template.match(/<(?:page-meta|PageMeta|pageMeta)\b[^>]*(?:\/>|>([\s\S]*?)<\/\1)/i);
       return match ? match[0] : "";
     } catch (error) {
-      logger2.error(`\u9875\u9762\u5143\u6570\u636E\u63D0\u53D6\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(`\u9875\u9762\u5143\u6570\u636E\u63D0\u53D6\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
       return "";
     }
   }
 };
-HtmlGenerator.PAGE_META_REGEX = /<(?:page-meta|PageMeta|pageMeta)\b[^>]*(?:\/>|>([\s\S]*?)<\/\1)/gi;
-HtmlGenerator.COMMENT_REGEX = /<!--(?!.*?(?:#ifdef|#ifndef|#endif)).*?-->/g;
 var StyleGenerator = class {
   /**
    * 生成样式代码
    */
   static generateStyle(styles) {
     try {
-      if (!Array.isArray(styles) || styles.length === 0)
-        return "";
+      if (!Array.isArray(styles) || styles.length === 0) return "";
       return styles.reduce((result, style) => {
         const attrs = [];
-        if (style.lang)
-          attrs.push(`lang="${style.lang}"`);
-        if (style.scoped)
-          attrs.push("scoped");
-        if (style.src)
-          attrs.push(`src="${style.src}"`);
+        if (style.lang) attrs.push(`lang="${style.lang}"`);
+        if (style.scoped) attrs.push("scoped");
+        if (style.src) attrs.push(`src="${style.src}"`);
         const attrsStr = attrs.length ? ` ${attrs.join(" ")}` : "";
         if (style.src) {
           return result + `<style${attrsStr}></style>
@@ -504,7 +472,7 @@ ${style.content}
         }
       }, "");
     } catch (error) {
-      logger2.error(`\u6837\u5F0F\u751F\u6210\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(`\u6837\u5F0F\u751F\u6210\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
       return "";
     }
   }
@@ -520,7 +488,7 @@ var ScriptGenerator = class {
 ${script.content}
 </script>`;
     } catch (error) {
-      logger2.error(`\u811A\u672C\u751F\u6210\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(`\u811A\u672C\u751F\u6210\u5931\u8D25: ${error instanceof Error ? error.message : String(error)}`);
       return "";
     }
   }
@@ -529,7 +497,7 @@ var generateHtmlCode2 = HtmlGenerator.generateHtml.bind(HtmlGenerator);
 var getTemplatePageMeta2 = HtmlGenerator.extractPageMeta.bind(HtmlGenerator);
 var generateStyleCode2 = StyleGenerator.generateStyle.bind(StyleGenerator);
 var generateScriptCode2 = ScriptGenerator.generateScript.bind(ScriptGenerator);
-var transformSfc = (id, content, curPage) => {
+var transformSfc = (id, content, label, labelCode) => {
   const { descriptor, error } = parseSfcDescriptor(id, content);
   if (error || !descriptor) {
     return {
@@ -539,7 +507,7 @@ var transformSfc = (id, content, curPage) => {
     };
   }
   try {
-    const { template, pageMeta, style, scriptSetup, script } = generateSfcParts(descriptor, curPage);
+    const { template, pageMeta, style, scriptSetup, script } = generateSfcParts(descriptor, label, labelCode);
     const transformedContent = buildTransformedContent({
       template,
       pageMeta,
@@ -566,11 +534,11 @@ var parseSfcDescriptor = (id, content) => {
     return { descriptor: null, error: errorMessage };
   }
 };
-var generateSfcParts = (descriptor, curPage) => {
-  var _a;
-  const templateContent = ((_a = descriptor.template) == null ? void 0 : _a.content) || "";
-  const labelCode = getInsertLabelDom(curPage.label);
-  const template = generateHtmlCode2(templateContent, labelCode);
+var generateSfcParts = (descriptor, label, labelCode) => {
+  const templateContent = descriptor.template?.content || "";
+  const needInject = label.length > 0 && !labelCode;
+  const injectLabelCode = needInject ? getInsertLabelDom(label) : labelCode || "";
+  const template = generateHtmlCode2(templateContent, injectLabelCode);
   const pageMeta = getTemplatePageMeta2(templateContent);
   const style = generateStyleCode2(descriptor.styles || []);
   const scriptSetup = descriptor.scriptSetup ? generateScriptCode2(descriptor.scriptSetup) : null;
@@ -604,9 +572,9 @@ var buildTransformedContent = ({
   ];
   return parts.join("\n").trim();
 };
+var specialScriptRegex = /<script\s+module="[^"]*"\s+lang="(?:wxs|sjs|filter\.js)"(?:\s+src="[^"]*")?\s*(?:\/>|>([\s\S]*?)<\/script>)/g;
 var extractSpecialScripts = (descriptor) => {
   const content = descriptor.source;
-  const specialScriptRegex = /<script\s+module="[^"]*"\s+lang="(?:wxs|sjs|filter\.js)"(?:\s+src="[^"]*")?\s*(?:\/>|>([\s\S]*?)<\/script>)/g;
   let match;
   const scripts = [];
   while ((match = specialScriptRegex.exec(content)) !== null) {
@@ -621,7 +589,7 @@ var generateSourceMap = (id, originalContent, transformedContent) => {
     code: magicString.toString(),
     map: magicString.generateMap({
       source: id,
-      hires: true,
+      hires: false,
       includeContent: false
     })
   };
@@ -637,9 +605,7 @@ function writeTypeFileIfChanged(filePath, content) {
   }
   if (needWrite) {
     fs3__default.default.writeFileSync(filePath, content, "utf8");
-    return true;
   }
-  return false;
 }
 function generateRouteTypes(pageNames, options) {
   const typeStr = `// Generated by unplugin-auto-import
@@ -649,99 +615,130 @@ export type Path = ${pageNames.map((n) => `'${n}'`).join(" | ")};
   writeTypeFileIfChanged(dtsPath, typeStr);
   return dtsPath;
 }
+var logger2 = new tslog.Logger({
+  name: "vite-plugin-uniapp-injector",
+  minLevel: process.env.NODE_ENV === "production" ? 3 : 1,
+  type: "pretty",
+  hideLogPositionForProduction: true,
+  prettyLogTimeZone: "local",
+  prettyLogTemplate: "{{yyyy}}.{{mm}}.{{dd}} {{hh}}:{{MM}}:{{ss}}	{{logLevelName}}	"
+});
 
 // src/vite-plugin-uniapp-injector/plugin.ts
 var CONSTANTS = {
   TRANSFORM_LOG_INTERVAL: 20,
-  VUE_FILE_REGEX: /\.vue$/
+  VUE_FILE_REGEX: /\.vue$/,
+  WINDOWS_PATH_PREFIX: /^\/+(?=[a-zA-Z]:)/
+};
+var normalizeId = (id) => id.replace(/\\/g, "/").replace(CONSTANTS.WINDOWS_PATH_PREFIX, "");
+var resolvePaths = () => {
+  const inputDir = process.env.UNI_INPUT_DIR || `${process.env.INIT_CWD}/src`;
+  if (!inputDir || inputDir.trim() === "") {
+    logger2.error("Missing required environment variables: UNI_INPUT_DIR or INIT_CWD");
+    return null;
+  }
+  return { rootPath: path__default.default.resolve(inputDir) };
 };
 function UniViteRootInjector(options) {
   const state = {
     pagesMap: {},
+    routeMap: /* @__PURE__ */ new Map(),
     isInitialized: false,
     totalPages: 0,
     transformCount: 0
   };
-  const getValidatedPaths = () => {
-    const inputDir = process.env.UNI_INPUT_DIR || `${process.env.INIT_CWD}/src`;
-    if (!inputDir || inputDir.trim() === "") {
-      throw new Error("Missing required environment variables: UNI_INPUT_DIR or INIT_CWD");
-    }
-    return {
-      rootPath: path__default.default.resolve(inputDir),
-      pagesPath: path__default.default.resolve(inputDir, "pages.json")
-    };
-  };
+  let cachedRootPath = "";
   const initialize = () => {
     try {
-      const { rootPath: rootPath2, pagesPath } = getValidatedPaths();
-      initializePages2(pagesPath, rootPath2, options);
-      state.pagesMap = analyzePages();
-      generateRouteTypes(Object.keys(state.pagesMap), options);
-      state.totalPages = Object.keys(state.pagesMap).length;
+      const paths = resolvePaths();
+      if (!paths) {
+        resetState();
+        return;
+      }
+      cachedRootPath = paths.rootPath;
+      const pagesPath = path__default.default.resolve(cachedRootPath, "pages.json");
+      initializePages2(pagesPath, cachedRootPath, options);
+      const analyzed = analyzePages();
+      const pagesMap2 = {};
+      const routeMap = /* @__PURE__ */ new Map();
+      for (const [route, info] of Object.entries(analyzed)) {
+        const label = info.label || [];
+        pagesMap2[route] = {
+          label,
+          labelCode: getInsertLabelDom(label)
+        };
+        const rel = route.replace(/^\//, "");
+        const abs = path__default.default.resolve(cachedRootPath, `${rel}.vue`);
+        routeMap.set(normalizeId(abs), route);
+      }
+      state.pagesMap = pagesMap2;
+      state.routeMap = routeMap;
+      generateRouteTypes(Object.keys(pagesMap2), options);
+      state.totalPages = Object.keys(pagesMap2).length;
       state.isInitialized = true;
       if (state.totalPages > 0) {
-        logger.info(`Initialized ${state.totalPages} pages`);
+        logger2.info(`Initialized ${state.totalPages} pages`);
       } else {
-        logger.warn("No pages found in pages.json");
+        logger2.warn("No pages found in pages.json");
       }
     } catch (error) {
-      logger.error("Initialization failed:", error);
+      logger2.error("Initialization failed:", error);
       resetState();
     }
   };
   const resetState = () => {
     state.pagesMap = {};
+    state.routeMap.clear();
     state.isInitialized = false;
     state.totalPages = 0;
     state.transformCount = 0;
-  };
-  const logTransformProgress = () => {
-    const { transformCount, totalPages } = state;
-    if (transformCount % CONSTANTS.TRANSFORM_LOG_INTERVAL === 0 || transformCount === totalPages) {
-      const progress = Math.min(100, Math.round(transformCount / totalPages * 100));
-      logger.debug(`Processing pages... ${transformCount}/${totalPages} (${progress}%)`);
-    }
+    cachedRootPath = "";
   };
   return {
     name: "vite-inset-loader",
+    // 在 Vite 核心(含 @vitejs/plugin-vue 等 SFC 编译链)之前执行:
+    // 1)保证拿到未编译的原始 .vue 源码做模板注入,不受其他插件顺序影响;
+    // 2)避免对各平台被插件链预处理过的中间代码做无效 SFC parse,降低无效计算。
+    // 顺序参考 Vite 5 文档: Alias -> enforce:'pre' 用户插件 -> Vite 核心 -> 普通用户插件 -> enforce:'post'。
+    enforce: "pre",
     buildStart() {
-      logger.debug("Starting build initialization");
       if (state.isInitialized) {
-        logger.trace("Already initialized, skipping");
         return;
       }
       initialize();
     },
     watchChange(id, change) {
       if (change.event === "update" && id.includes("pages.json")) {
-        logger.info("Detected pages.json update, reinitializing");
+        logger2.info("Detected pages.json update, reinitializing");
         initialize();
       }
     },
-    async transform(code, id) {
+    // Vite 5/6 使用函数形式 transform（兼容 uni-app 官方固定的 vite ^5.2.8）。
+    // 若不使用 filter:{id},手动正则快筛成本为一次 test,O(1) 可忽略。
+    // 注:Vite 6.3+/8(Rolldown) 支持改成 { filter, handler } 对象形式,让引擎在 Rust 侧
+    // 直接过滤非 .vue 文件,可进一步减少跨进程调用——但会失去 Vite 5 兼容,故此处保守实现。
+    transform(code, id) {
       if (!CONSTANTS.VUE_FILE_REGEX.test(id)) {
-        return { code, map: null };
+        return null;
       }
       if (!state.isInitialized) {
-        logger.warn("Plugin not initialized, skipping transform");
-        return { code, map: null };
+        return null;
+      }
+      const route = state.routeMap.get(normalizeId(id));
+      if (!route) {
+        return null;
+      }
+      const curPage = state.pagesMap[route];
+      if (!curPage) {
+        return null;
+      }
+      state.transformCount++;
+      const { transformCount, totalPages } = state;
+      if (transformCount % CONSTANTS.TRANSFORM_LOG_INTERVAL === 0 || transformCount === totalPages) {
+        logger2.debug(`Processing pages... ${transformCount}/${totalPages}`);
       }
       try {
-        const { rootPath: rootPath2 } = getValidatedPaths();
-        const route = insertLabel(rootPath2, id);
-        if (!route) {
-          logger.silly(`No route match for ${id}`);
-          return { code, map: null };
-        }
-        const curPage = state.pagesMap[route];
-        if (!curPage) {
-          logger.silly(`No page config found for route: ${route}`);
-          return { code, map: null };
-        }
-        state.transformCount++;
-        logTransformProgress();
-        const result = await transformSfc(id, code, curPage);
+        const result = transformSfc(id, code, curPage.label, curPage.labelCode);
         const resultMap = result.map;
         return {
           code: result.code,
@@ -755,7 +752,7 @@ function UniViteRootInjector(options) {
           ...result.errors ? { errors: result.errors } : {}
         };
       } catch (error) {
-        logger.error(`Transform failed for ${id}:`, error);
+        logger2.error(`Transform failed for ${id}:`, error);
         return { code, map: null };
       }
     }
@@ -785,5 +782,5 @@ var UniViteRootInjector2 = (options) => {
 
 exports.UniViteInsetLoader = UniViteInsetLoader;
 exports.UniViteRootInjector = UniViteRootInjector2;
-//# sourceMappingURL=out.js.map
+//# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

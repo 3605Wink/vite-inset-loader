@@ -14,23 +14,15 @@ interface TransformResult {
   errors?: string[];
 }
 
-// 定义页面配置接口
-interface PageConfig {
-  label: string[];
-  package?: {
-    name: string;
-    version?: string;
-  };
-}
-
 /**
  * 转换 Vue SFC 文件的核心处理器
  * @param id 文件唯一标识符
  * @param content 文件原始内容
- * @param curPage 当前页面配置
+ * @param label 当前页面需要注入的组件键名列表
+ * @param labelCode 预编译的注入 DOM 字符串（由插件初始化时生成，避免热路径重复拼接）
  * @returns 转换后的代码、SourceMap和可能的错误信息
  */
-export const transformSfc = (id: string, content: string, curPage: PageConfig): TransformResult => {
+export const transformSfc = (id: string, content: string, label: string[], labelCode?: string): TransformResult => {
   // 1. 安全解析 SFC（带错误处理）
   const { descriptor, error } = parseSfcDescriptor(id, content);
 
@@ -45,7 +37,7 @@ export const transformSfc = (id: string, content: string, curPage: PageConfig): 
 
   try {
     // 2. 生成 SFC 各部分内容
-    const { template, pageMeta, style, scriptSetup, script } = generateSfcParts(descriptor, curPage);
+    const { template, pageMeta, style, scriptSetup, script } = generateSfcParts(descriptor, label, labelCode);
 
     // 3. 构建转换后的内容（保留特殊 script 标签）
     const transformedContent = buildTransformedContent({
@@ -99,16 +91,18 @@ interface SfcParts {
 /**
  * 生成 SFC 各部分内容
  * @param descriptor SFC 描述符
- * @param curPage 页面配置
+ * @param label 页面注入的组件键名列表
+ * @param labelCode 预编译的注入 DOM 字符串（未传入则回退为按需拼接）
  * @returns 处理后的 SFC 各部分内容
  */
-const generateSfcParts = (descriptor: SFCDescriptor, curPage: PageConfig): SfcParts => {
+const generateSfcParts = (descriptor: SFCDescriptor, label: string[], labelCode?: string): SfcParts => {
   // 提取模板内容
   const templateContent = descriptor.template?.content || '';
-  const labelCode = getInsertLabelDom(curPage.label);
+  const needInject = label.length > 0 && !labelCode;
+  const injectLabelCode = needInject ? getInsertLabelDom(label) : labelCode || '';
 
   // 并行处理各个部分
-  const template = generateHtmlCode(templateContent, labelCode);
+  const template = generateHtmlCode(templateContent, injectLabelCode);
   const pageMeta = getTemplatePageMeta(templateContent);
   const style = generateStyleCode(descriptor.styles || []);
   const scriptSetup = descriptor.scriptSetup ? generateScriptCode(descriptor.scriptSetup) : null;
@@ -161,14 +155,16 @@ const buildTransformedContent = ({
   return parts.join('\n').trim();
 };
 
+// 模块级预编译正则，避免每次调用重复创建（正则字面量本质每次 exec 都会重置 lastIndex，无状态复用安全）
+const specialScriptRegex =
+  /<script\s+module="[^"]*"\s+lang="(?:wxs|sjs|filter\.js)"(?:\s+src="[^"]*")?\s*(?:\/>|>([\s\S]*?)<\/script>)/g;
+
 /**
  * 提取特殊 script 标签（wxs/sjs 等）
  */
 const extractSpecialScripts = (descriptor: SFCDescriptor): string => {
   // 从原始内容中提取（因为 descriptor 不会包含这些特殊标签）
   const content = descriptor.source;
-  const specialScriptRegex =
-    /<script\s+module="[^"]*"\s+lang="(?:wxs|sjs|filter\.js)"(?:\s+src="[^"]*")?\s*(?:\/>|>([\s\S]*?)<\/script>)/g;
 
   let match;
   const scripts: string[] = [];
@@ -182,6 +178,7 @@ const extractSpecialScripts = (descriptor: SFCDescriptor): string => {
 
 /**
  * 生成 SourceMap
+ * 使用 hires: false 降低 sourcemap 生成成本（大文件收益明显，映射精度对调试影响有限）
  */
 const generateSourceMap = (id: string, originalContent: string, transformedContent: string) => {
   const magicString = new MagicString(originalContent);
@@ -191,7 +188,7 @@ const generateSourceMap = (id: string, originalContent: string, transformedConte
     code: magicString.toString(),
     map: magicString.generateMap({
       source: id,
-      hires: true,
+      hires: false,
       includeContent: false,
     }),
   };

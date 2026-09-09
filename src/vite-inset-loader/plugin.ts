@@ -51,6 +51,9 @@ const initializePages = (that: any) => {
  */
 export const viteInsetLoader = (options?: OPTIONS): PluginOption => ({
   name: 'vite-inset-loader',
+  // enforce:'pre' 确保在 Vite 核心 SFC 编译链之前拿到原始 .vue 源码,
+  // 与 UniViteRootInjector 保持一致的执行位置最佳实践(见 README「最佳使用位置」)。
+  enforce: 'pre',
   configResolved(config) {
     rootDir = config.root;
     includeDirectories = filterDirectoriesByInclude(rootDir, options || { include: 'src' }).map(normalizePath);
